@@ -7,7 +7,7 @@ export const authRoutes = (): Router => {
     const authController = Container.get(AuthController);
 
     router.post("/register", (req, res) => authController.register(req, res));
-    router.post("/auth", (req, res) => authController.login(req, res));
+    router.post("/login", (req, res) => authController.login(req, res));
 
     return router;
 };
