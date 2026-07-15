@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16
+    container_name: family-finance-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: family_finance
+    ports:
+      - "5432:5432"
+    volumes:
+      - family-finance-data:/var/lib/postgresql/data
+
+volumes:
+  family-finance-data:
