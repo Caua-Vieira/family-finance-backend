@@ -1,8 +1,8 @@
 import bcrypt from "bcrypt";
 import { Inject } from "typescript-ioc";
-import { InvalidCredentialsException } from "../../domain/errors/errors";
-import { generateToken } from "../../infrastructure/config/jwt";
-import { AuthRepository } from "../../domain/contracts/auth-repository";
+import { InvalidCredentialsException } from "../../../domain/errors/errors";
+import { generateToken } from "../../../infrastructure/config/jwt";
+import { AuthRepository } from "../../../domain/contracts/auth-repository";
 
 export class LoginUseCase {
 
@@ -21,6 +21,6 @@ export class LoginUseCase {
             throw new InvalidCredentialsException("Credenciais inválidas");
         }
 
-        return generateToken({ id: user.id, email: user.email });
+        return generateToken({ id: user.id, email: user.email, householdId: user.householdId });
     }
 }

@@ -1,9 +1,9 @@
 import bcrypt from "bcrypt";
 import { Inject } from "typescript-ioc";
-import { UserAlreadyExistsException } from "../../domain/errors/errors";
-import { generateToken } from "../../infrastructure/config/jwt";
-import { AuthRepository } from "../../domain/contracts/auth-repository";
-import { CreateUserDTO } from "../../domain/types/create-user-dto";
+import { UserAlreadyExistsException } from "../../../domain/errors/errors";
+import { generateToken } from "../../../infrastructure/config/jwt";
+import { AuthRepository } from "../../../domain/contracts/auth-repository";
+import { CreateUserDTO } from "../../../domain/types/create-user-dto";
 
 export class RegisterUseCase {
 
@@ -25,6 +25,6 @@ export class RegisterUseCase {
             householdName: input.householdName ?? `Família ${input.name}`,
         });
 
-        return generateToken({ id: user.id, email: user.email });
+        return generateToken({ id: user.id, email: user.email, householdId: user.householdId });
     }
 }
