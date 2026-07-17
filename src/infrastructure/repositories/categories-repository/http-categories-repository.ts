@@ -27,7 +27,7 @@ export class HttpCategoriesRepository implements CategoriesRepository {
         }
     }
 
-    async delete(id: string, householdId: string): Promise<void> {
+    async delete(id: number, householdId: string): Promise<void> {
         let result;
         try {
             result = await this.database.getRepository(Category).delete({ id, householdId });

@@ -10,8 +10,8 @@ import {
 import { User } from "./users";
 import { Household } from "./household";
 
-@Entity("categories")
-export class Category {
+@Entity("cards")
+export class Card {
     @PrimaryGeneratedColumn("identity")
     id!: number;
 
@@ -24,6 +24,13 @@ export class Category {
     @ManyToOne(() => Household, { onDelete: "CASCADE" })
     @JoinColumn({ name: "household_id" })
     household!: Household;
+
+    @Column({ name: "owner_user_id" })
+    ownerUserId!: string;
+
+    @ManyToOne(() => User, { onDelete: "CASCADE" })
+    @JoinColumn({ name: "owner_user_id" })
+    ownerUser!: User;
 
     @CreateDateColumn({ name: "created_at" })
     createdAt!: Date;

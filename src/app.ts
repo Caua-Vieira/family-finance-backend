@@ -4,6 +4,7 @@ import express from "express";
 import cors from "cors";
 import { authRoutes } from "./infrastructure/interfaces/routes/auth.routes";
 import { categoriesRoutes } from "./infrastructure/interfaces/routes/categories.routes";
+import { cardRoutes } from "./infrastructure/interfaces/routes/card.routes";
 import { errorHandler } from "./middleware/error-handler";
 
 const app = express();
@@ -16,6 +17,7 @@ app.get("/health", (_req, res) => {
 
 app.use("/auth", authRoutes());
 app.use("/categories", categoriesRoutes());
+app.use("/cards", cardRoutes());
 
 app.use(errorHandler);
 
