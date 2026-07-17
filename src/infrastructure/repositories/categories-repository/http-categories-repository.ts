@@ -14,7 +14,6 @@ export class HttpCategoriesRepository implements CategoriesRepository {
             const category = repository.create(data);
             await repository.save(category);
         } catch (error) {
-            console.log(error)
             throw new DatabaseException("Ocorreu um erro ao criar a categoria");
         }
     }
