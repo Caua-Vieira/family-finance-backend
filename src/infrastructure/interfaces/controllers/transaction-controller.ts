@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { Inject, Singleton } from "typescript-ioc";
 import { TransactionUseCase } from "../../../application/usecases/transaction-usecase";
+import { TransactionFiltersDTO } from "../../../domain/types/transaction-filters-dto";
+import { parseDate, parseNumber, parseTransactionType } from "./utils/query-parsers";
 
 @Singleton
 export class TransactionController {
@@ -16,5 +18,24 @@ export class TransactionController {
         await this.transactionUseCase.create({ type, amount, description, date, categoryId, cardId, userId, householdId });
 
         res.status(201).send();
+    }
+
+    async list(req: Request, res: Response) {
+        const { householdId } = (req as any).user;
+        const { startDate, endDate, minAmount, maxAmount, type, categoryId, cardId } = req.query;
+
+        const filters: TransactionFiltersDTO = {
+            startDate: parseDate(startDate),
+            endDate: parseDate(endDate),
+            minAmount: parseNumber(minAmount),
+            maxAmount: parseNumber(maxAmount),
+            type: parseTransactionType(type),
+            categoryId: typeof categoryId === "string" ? categoryId : undefined,
+            cardId: typeof cardId === "string" ? cardId : undefined,
+        };
+
+        const transactions = await this.transactionUseCase.list(householdId, filters);
+
+        res.status(200).json(transactions);
     }
 }

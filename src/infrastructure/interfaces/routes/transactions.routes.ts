@@ -8,6 +8,7 @@ export const transactionsRoutes = (): Router => {
     const transactionController = Container.get(TransactionController);
 
     router.post("/", authMiddleware, (req, res) => transactionController.create(req, res));
+    router.get("/", authMiddleware, (req, res) => transactionController.list(req, res));
 
     return router;
 };

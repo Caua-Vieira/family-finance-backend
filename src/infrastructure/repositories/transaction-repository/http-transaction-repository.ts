@@ -4,6 +4,7 @@ import { DatabaseException } from "../../../domain/errors/errors";
 import { Transaction } from "../../entities/transactions";
 import { Database } from "../../database/database";
 import { CreateTransactionDTO } from "../../../domain/types/create-transaction-dto";
+import { TransactionFiltersDTO } from "../../../domain/types/transaction-filters-dto";
 
 export class HttpTransactionRepository implements TransactionRepository {
     constructor(@Inject private database: Database) { }
@@ -14,8 +15,39 @@ export class HttpTransactionRepository implements TransactionRepository {
             const transaction = repository.create(data);
             await repository.save(transaction);
         } catch (error) {
-            console.log(error)
             throw new DatabaseException("Ocorreu um erro ao registrar a transação");
         }
+    }
+
+    async findByHouseholdId(householdId: string, filters: TransactionFiltersDTO): Promise<Transaction[]> {
+        try {
+            const repository = this.database.getRepository(Transaction);
+            const query = repository.createQueryBuilder("transaction")
+                .where("transaction.householdId = :householdId", { householdId });
+
+            this.buildFilterConditions(filters).forEach(({ clause, params }) => query.andWhere(clause, params));
+
+            query.orderBy("transaction.date", "DESC");
+
+            return await query.getMany();
+        } catch (error) {
+            throw new DatabaseException("Ocorreu um erro ao buscar as transações");
+        }
+    }
+
+    private buildFilterConditions(filters: TransactionFiltersDTO): { clause: string; params: Record<string, unknown> }[] {
+        const conditions: [unknown, string, Record<string, unknown>][] = [
+            [filters.startDate, "transaction.date >= :startDate", { startDate: filters.startDate }],
+            [filters.endDate, "transaction.date <= :endDate", { endDate: filters.endDate }],
+            [filters.minAmount, "transaction.amount >= :minAmount", { minAmount: filters.minAmount }],
+            [filters.maxAmount, "transaction.amount <= :maxAmount", { maxAmount: filters.maxAmount }],
+            [filters.type, "transaction.type = :type", { type: filters.type }],
+            [filters.categoryId, "transaction.categoryId = :categoryId", { categoryId: filters.categoryId }],
+            [filters.cardId, "transaction.cardId = :cardId", { cardId: filters.cardId }],
+        ];
+
+        return conditions
+            .filter(([value]) => value !== undefined)
+            .map(([, clause, params]) => ({ clause, params }));
     }
 }
