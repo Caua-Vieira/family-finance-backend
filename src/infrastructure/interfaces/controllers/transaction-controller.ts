@@ -38,4 +38,23 @@ export class TransactionController {
 
         res.status(200).json(transactions);
     }
+
+    async update(req: Request, res: Response) {
+        const id = String(req.params.id);
+        const { type, amount, description, date, categoryId, cardId } = req.body;
+        const { householdId } = (req as any).user;
+
+        await this.transactionUseCase.update({ id, householdId, type, amount, description, date, categoryId, cardId });
+
+        res.status(204).send();
+    }
+
+    async delete(req: Request, res: Response) {
+        const id = String(req.params.id);
+        const { householdId } = (req as any).user;
+
+        await this.transactionUseCase.delete(id, householdId);
+
+        res.status(204).send();
+    }
 }

@@ -1,15 +1,15 @@
 import { Inject } from "typescript-ioc";
 import { TransactionRepository } from "../../../domain/contracts/transaction-repository";
-import { DatabaseException } from "../../../domain/errors/errors";
+import { DatabaseException, NotFoundException } from "../../../domain/errors/errors";
 import { Transaction } from "../../entities/transactions";
 import { Database } from "../../database/database";
-import { CreateTransactionDTO } from "../../../domain/types/create-transaction-dto";
+import { TransactionDTO } from "../../../domain/types/transaction-dto";
 import { TransactionFiltersDTO } from "../../../domain/types/transaction-filters-dto";
 
 export class HttpTransactionRepository implements TransactionRepository {
     constructor(@Inject private database: Database) { }
 
-    async create(data: CreateTransactionDTO): Promise<void> {
+    async create(data: TransactionDTO): Promise<void> {
         try {
             const repository = this.database.getRepository(Transaction);
             const transaction = repository.create(data);
@@ -32,6 +32,34 @@ export class HttpTransactionRepository implements TransactionRepository {
             return await query.getMany();
         } catch (error) {
             throw new DatabaseException("Ocorreu um erro ao buscar as transações");
+        }
+    }
+
+    async update(data: TransactionDTO): Promise<void> {
+        const { id, householdId, ...rest } = data;
+
+        let result;
+        try {
+            result = await this.database.getRepository(Transaction).update({ id, householdId }, rest);
+        } catch {
+            throw new DatabaseException("Ocorreu um erro ao atualizar a transação");
+        }
+
+        if (!result.affected) {
+            throw new NotFoundException("Transação não encontrada");
+        }
+    }
+
+    async delete(id: string, householdId: string): Promise<void> {
+        let result;
+        try {
+            result = await this.database.getRepository(Transaction).delete({ id, householdId });
+        } catch {
+            throw new DatabaseException("Ocorreu um erro ao excluir a transação");
+        }
+
+        if (!result.affected) {
+            throw new NotFoundException("Transação não encontrada");
         }
     }
 

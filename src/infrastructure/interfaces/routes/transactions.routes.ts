@@ -9,6 +9,8 @@ export const transactionsRoutes = (): Router => {
 
     router.post("/", authMiddleware, (req, res) => transactionController.create(req, res));
     router.get("/", authMiddleware, (req, res) => transactionController.list(req, res));
+    router.put("/:id", authMiddleware, (req, res) => transactionController.update(req, res));
+    router.delete("/:id", authMiddleware, (req, res) => transactionController.delete(req, res));
 
     return router;
 };
