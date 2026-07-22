@@ -7,8 +7,11 @@ import { CardRepository } from "../../domain/contracts/card-repository";
 import { HttpCardRepository } from "../repositories/card-repository/http-card-repository";
 import { TransactionRepository } from "../../domain/contracts/transaction-repository";
 import { HttpTransactionRepository } from "../repositories/transaction-repository/http-transaction-repository";
+import { BudgetRepository } from "../../domain/contracts/budget-repository";
+import { HttpBudgetRepository } from "../repositories/budget-repository/http-budget-repository";
 
 Container.bind(AuthRepository).to(HttpAuthRepository);
 Container.bind(CategoriesRepository).to(HttpCategoriesRepository);
 Container.bind(CardRepository).to(HttpCardRepository);
 Container.bind(TransactionRepository).to(HttpTransactionRepository);
+Container.bind(BudgetRepository).to(HttpBudgetRepository);

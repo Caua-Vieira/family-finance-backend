@@ -32,3 +32,12 @@ export class InvalidCredentialsException extends Error {
         Object.setPrototypeOf(this, InvalidCredentialsException.prototype);
     }
 }
+
+export class InvalidCategoryException extends Error {
+    public readonly name: string = 'Invalid Category Error';
+
+    constructor(message: string) {
+        super(message);
+        Object.setPrototypeOf(this, InvalidCategoryException.prototype);
+    }
+}
