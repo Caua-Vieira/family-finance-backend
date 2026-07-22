@@ -26,6 +26,14 @@ export class HttpCategoriesRepository implements CategoriesRepository {
         }
     }
 
+    async findById(id: number, householdId: string): Promise<Category | null> {
+        try {
+            return await this.database.getRepository(Category).findOne({ where: { id, householdId } });
+        } catch {
+            throw new DatabaseException("Ocorreu um erro ao buscar a categoria");
+        }
+    }
+
     async update(data: CategoryDTO): Promise<void> {
         const { id, householdId, ...rest } = data;
 
