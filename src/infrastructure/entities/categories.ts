@@ -5,9 +5,9 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
     ManyToOne,
+    OneToMany,
     JoinColumn,
 } from "typeorm";
-import { User } from "./users";
 import { Household } from "./household";
 
 @Entity("categories")
@@ -24,6 +24,16 @@ export class Category {
     @ManyToOne(() => Household, { onDelete: "CASCADE" })
     @JoinColumn({ name: "household_id" })
     household!: Household;
+
+    @Column({ name: "parent_id", nullable: true })
+    parentId!: number | null;
+
+    @ManyToOne(() => Category, (category) => category.children, { onDelete: "SET NULL", nullable: true })
+    @JoinColumn({ name: "parent_id" })
+    parent!: Category | null;
+
+    @OneToMany(() => Category, (category) => category.parent)
+    children!: Category[];
 
     @CreateDateColumn({ name: "created_at" })
     createdAt!: Date;

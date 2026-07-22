@@ -9,6 +9,7 @@ export const categoriesRoutes = (): Router => {
 
     router.post("/", authMiddleware, (req, res) => categoriesController.create(req, res));
     router.get("/", authMiddleware, (req, res) => categoriesController.list(req, res));
+    router.put("/:id", authMiddleware, (req, res) => categoriesController.update(req, res));
     router.delete("/:id", authMiddleware, (req, res) => categoriesController.delete(req, res));
 
     return router;

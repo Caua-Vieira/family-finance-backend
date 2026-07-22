@@ -10,10 +10,10 @@ export class CategoriesController {
     ) { }
 
     async create(req: Request, res: Response) {
-        const { name } = req.body;
+        const { name, parentId } = req.body;
         const householdId = (req as any).user.householdId;
 
-        await this.categoriesUseCase.create({ name, householdId });
+        await this.categoriesUseCase.create({ name, parentId, householdId });
 
         res.status(204).send();
     }
@@ -26,8 +26,18 @@ export class CategoriesController {
         res.status(200).json(categories);
     }
 
+    async update(req: Request, res: Response) {
+        const id = Number(req.params.id);
+        const { name, parentId } = req.body;
+        const householdId = (req as any).user.householdId;
+
+        await this.categoriesUseCase.update({ id, name, parentId, householdId });
+
+        res.status(204).send();
+    }
+
     async delete(req: Request, res: Response) {
-        const id = req.params.id as string;
+        const id = Number(req.params.id);
         const householdId = (req as any).user.householdId;
 
         await this.categoriesUseCase.delete(id, householdId);

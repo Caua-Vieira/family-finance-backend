@@ -3,12 +3,12 @@ import { CategoriesRepository } from "../../../domain/contracts/categories-repos
 import { DatabaseException, NotFoundException } from "../../../domain/errors/errors";
 import { Category } from "../../entities/categories";
 import { Database } from "../../database/database";
-import { CreateCategoriesDTO } from "../../../domain/types/create-categories-dto";
+import { CategoryDTO } from "../../../domain/types/category-dto";
 
 export class HttpCategoriesRepository implements CategoriesRepository {
     constructor(@Inject private database: Database) { }
 
-    async create(data: CreateCategoriesDTO): Promise<void> {
+    async create(data: CategoryDTO): Promise<void> {
         try {
             const repository = this.database.getRepository(Category);
             const category = repository.create(data);
@@ -23,6 +23,21 @@ export class HttpCategoriesRepository implements CategoriesRepository {
             return await this.database.getRepository(Category).find({ where: { householdId } });
         } catch {
             throw new DatabaseException("Ocorreu um erro ao buscar as categorias");
+        }
+    }
+
+    async update(data: CategoryDTO): Promise<void> {
+        const { id, householdId, ...rest } = data;
+
+        let result;
+        try {
+            result = await this.database.getRepository(Category).update({ id, householdId }, rest);
+        } catch {
+            throw new DatabaseException("Ocorreu um erro ao atualizar a categoria");
+        }
+
+        if (!result.affected) {
+            throw new NotFoundException("Categoria não encontrada");
         }
     }
 

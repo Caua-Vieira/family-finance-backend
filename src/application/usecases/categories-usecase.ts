@@ -1,6 +1,6 @@
 import { Inject } from "typescript-ioc";
 import { CategoriesRepository } from "../../domain/contracts/categories-repository";
-import { CreateCategoriesDTO } from "../../domain/types/create-categories-dto";
+import { CategoryDTO } from "../../domain/types/category-dto";
 
 export class CategoriesUseCase {
 
@@ -8,7 +8,7 @@ export class CategoriesUseCase {
         @Inject private readonly categoriesRepository: CategoriesRepository
     ) { }
 
-    async create(input: CreateCategoriesDTO): Promise<void> {
+    async create(input: CategoryDTO): Promise<void> {
         await this.categoriesRepository.create(input);
     }
 
@@ -16,7 +16,11 @@ export class CategoriesUseCase {
         return this.categoriesRepository.findByHouseholdId(householdId);
     }
 
-    async delete(id: string, householdId: string): Promise<void> {
+    async update(input: CategoryDTO): Promise<void> {
+        await this.categoriesRepository.update(input);
+    }
+
+    async delete(id: number, householdId: string): Promise<void> {
         await this.categoriesRepository.delete(id, householdId);
     }
 }
