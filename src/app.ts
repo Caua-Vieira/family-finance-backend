@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import "./infrastructure/config/ioc";
-import express from "express";
+import express, { Router } from "express";
 import cors from "cors";
 import { authRoutes } from "./infrastructure/interfaces/routes/auth.routes";
 import { categoriesRoutes } from "./infrastructure/interfaces/routes/categories.routes";
@@ -17,11 +17,15 @@ app.get("/health", (_req, res) => {
     res.json({ status: "ok" });
 });
 
-app.use("/auth", authRoutes());
-app.use("/categories", categoriesRoutes());
-app.use("/cards", cardRoutes());
-app.use("/transactions", transactionsRoutes());
-app.use("/budgets", budgetRoutes());
+const apiRouter = Router();
+
+apiRouter.use("/auth", authRoutes());
+apiRouter.use("/categories", categoriesRoutes());
+apiRouter.use("/cards", cardRoutes());
+apiRouter.use("/transactions", transactionsRoutes());
+apiRouter.use("/budgets", budgetRoutes());
+
+app.use("/api", apiRouter);
 
 app.use(errorHandler);
 
