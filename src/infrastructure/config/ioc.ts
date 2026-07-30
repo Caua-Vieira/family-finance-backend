@@ -9,9 +9,12 @@ import { TransactionRepository } from "../../domain/contracts/transaction-reposi
 import { HttpTransactionRepository } from "../repositories/transaction-repository/http-transaction-repository";
 import { BudgetRepository } from "../../domain/contracts/budget-repository";
 import { HttpBudgetRepository } from "../repositories/budget-repository/http-budget-repository";
+import { UsersRepository } from "../../domain/contracts/users-repository";
+import { HttpUsersRepository } from "../repositories/users-repository/http-users-repository";
 
 Container.bind(AuthRepository).to(HttpAuthRepository);
 Container.bind(CategoriesRepository).to(HttpCategoriesRepository);
 Container.bind(CardRepository).to(HttpCardRepository);
 Container.bind(TransactionRepository).to(HttpTransactionRepository);
 Container.bind(BudgetRepository).to(HttpBudgetRepository);
+Container.bind(UsersRepository).to(HttpUsersRepository);
