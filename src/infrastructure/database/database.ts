@@ -24,4 +24,8 @@ export class Database {
     createQueryRunner(): QueryRunner {
         return this.appDataSource.createQueryRunner();
     }
+
+    async query<T = any>(sql: string, params?: unknown[]): Promise<T> {
+        return this.appDataSource.query(sql, params);
+    }
 }

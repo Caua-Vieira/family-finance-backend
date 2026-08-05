@@ -8,6 +8,7 @@ import { cardRoutes } from "./infrastructure/interfaces/routes/card.routes";
 import { transactionsRoutes } from "./infrastructure/interfaces/routes/transactions.routes";
 import { budgetRoutes } from "./infrastructure/interfaces/routes/budget.routes";
 import { usersRoutes } from "./infrastructure/interfaces/routes/users.routes";
+import { dashboardRoutes } from "./infrastructure/interfaces/routes/dashboard.routes";
 import { errorHandler } from "./middleware/error-handler";
 
 const app = express();
@@ -26,6 +27,7 @@ apiRouter.use("/cards", cardRoutes());
 apiRouter.use("/transactions", transactionsRoutes());
 apiRouter.use("/budgets", budgetRoutes());
 apiRouter.use("/users", usersRoutes());
+apiRouter.use("/dashboard", dashboardRoutes());
 
 app.use("/api", apiRouter);
 
