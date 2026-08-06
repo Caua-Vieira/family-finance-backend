@@ -1,7 +1,13 @@
 import { NextFunction, Request, Response } from "express";
-import { DatabaseException, InvalidCategoryException, InvalidCredentialsException, NotFoundException, UserAlreadyExistsException } from "../domain/errors/errors";
+import { MulterError } from "multer";
+import { DatabaseException, InvalidCategoryException, InvalidCredentialsException, InvalidFileException, NotFoundException, UserAlreadyExistsException } from "../domain/errors/errors";
 
 export function errorHandler(err: Error, req: Request, res: Response, next: NextFunction): void {
+    if (err instanceof MulterError || err instanceof InvalidFileException) {
+        res.status(400).json({ error: err.message });
+        return;
+    }
+
     if (err instanceof NotFoundException) {
         res.status(404).json({ error: err.message });
         return;

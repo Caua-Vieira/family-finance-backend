@@ -19,6 +19,16 @@ export class HttpTransactionRepository implements TransactionRepository {
         }
     }
 
+    async createMany(data: TransactionDTO[]): Promise<void> {
+        try {
+            const repository = this.database.getRepository(Transaction);
+            const transactions = repository.create(data);
+            await repository.save(transactions);
+        } catch (error) {
+            throw new DatabaseException("Ocorreu um erro ao importar as transações");
+        }
+    }
+
     async findByHouseholdId(householdId: string, filters: TransactionFiltersDTO): Promise<Transaction[]> {
         try {
             const repository = this.database.getRepository(Transaction);

@@ -3,6 +3,7 @@ import { Inject, Singleton } from "typescript-ioc";
 import { TransactionUseCase } from "../../../application/usecases/transaction-usecase";
 import { TransactionFiltersDTO } from "../../../domain/types/transaction-filters-dto";
 import { parseDate, parseNumber, parseTransactionType } from "./utils/query-parsers";
+import { parseExcelExpenses } from "./utils/excel-transaction-parser";
 
 @Singleton
 export class TransactionController {
@@ -10,6 +11,29 @@ export class TransactionController {
     constructor(
         @Inject private readonly transactionUseCase: TransactionUseCase,
     ) { }
+
+    async import(req: Request, res: Response) {
+        const file = req.file;
+
+        if (!file) {
+            res.status(400).json({ error: "Nenhum arquivo enviado" });
+            return;
+        }
+
+        const { id: userId, householdId } = (req as any).user;
+        const cardId = typeof req.body.cardId === "string" && req.body.cardId.trim() !== "" ? req.body.cardId : null;
+
+        const { rows, errors } = parseExcelExpenses(file.buffer);
+
+        if (rows.length === 0) {
+            res.status(400).json({ error: "Nenhum item válido encontrado na planilha", details: errors });
+            return;
+        }
+
+        const imported = await this.transactionUseCase.importExpenses({ rows, householdId, userId, cardId });
+
+        res.status(201).json({ imported, skipped: errors.length, errors });
+    }
 
     async create(req: Request, res: Response) {
         const { type, amount, description, date, categoryId, cardId } = req.body;
