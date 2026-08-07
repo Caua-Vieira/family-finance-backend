@@ -5,7 +5,9 @@ import { Database } from "../../database/database";
 import { CategorySpendingDTO, CategorySpendingRow, MonthlyTotalsDTO, MonthlyTotalsRow } from "../../../domain/types/dashboard-dto";
 
 export class HttpDashboardRepository implements DashboardRepository {
-    constructor(@Inject private database: Database) { }
+    constructor(
+        @Inject private database: Database
+    ) { }
 
     async getMonthlyTotals(householdId: string, month: number, year: number): Promise<MonthlyTotalsDTO> {
         try {
