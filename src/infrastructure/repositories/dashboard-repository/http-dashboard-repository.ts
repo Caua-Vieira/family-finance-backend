@@ -6,7 +6,7 @@ import { CategorySpendingDTO, CategorySpendingRow, MonthlyTotalsDTO, MonthlyTota
 
 export class HttpDashboardRepository implements DashboardRepository {
     constructor(
-        @Inject private database: Database
+        @Inject private database: Database,
     ) { }
 
     async getMonthlyTotals(householdId: string, month: number, year: number): Promise<MonthlyTotalsDTO> {
