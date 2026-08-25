@@ -20,9 +20,9 @@ export class AuthController {
     }
 
     async register(req: Request, res: Response) {
-        const { name, email, password, householdName } = req.body;
+        const { name, email, password, householdName, inviteCode } = req.body;
 
-        const token = await this.registerUseCase.execute({ name, email, password, householdName });
+        const token = await this.registerUseCase.execute({ name, email, password, householdName, inviteCode });
 
         res.status(201).json({ token });
     }

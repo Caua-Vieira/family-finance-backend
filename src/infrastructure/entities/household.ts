@@ -12,6 +12,9 @@ export class Household {
     @Column({ default: "BRL" })
     currency!: string;
 
+    @Column({ name: "invite_code", unique: true, nullable: true })
+    inviteCode!: string;
+
     @CreateDateColumn({ name: "created_at" })
     createdAt!: Date;
 

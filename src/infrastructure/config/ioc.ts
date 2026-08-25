@@ -13,8 +13,11 @@ import { UsersRepository } from "../../domain/contracts/users-repository";
 import { HttpUsersRepository } from "../repositories/users-repository/http-users-repository";
 import { DashboardRepository } from "../../domain/contracts/dashboard-repository";
 import { HttpDashboardRepository } from "../repositories/dashboard-repository/http-dashboard-repository";
+import { HouseholdRepository } from "../../domain/contracts/household-repository";
+import { HttpHouseholdRepository } from "../repositories/household-repository/http-household-repository";
 
 Container.bind(AuthRepository).to(HttpAuthRepository);
+Container.bind(HouseholdRepository).to(HttpHouseholdRepository);
 Container.bind(CategoriesRepository).to(HttpCategoriesRepository);
 Container.bind(CardRepository).to(HttpCardRepository);
 Container.bind(TransactionRepository).to(HttpTransactionRepository);

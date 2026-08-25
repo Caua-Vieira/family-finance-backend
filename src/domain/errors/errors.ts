@@ -50,3 +50,12 @@ export class InvalidFileException extends Error {
         Object.setPrototypeOf(this, InvalidFileException.prototype);
     }
 }
+
+export class InvalidRegisterException extends Error {
+    public readonly name: string = 'Invalid Register Error';
+
+    constructor(message: string) {
+        super(message);
+        Object.setPrototypeOf(this, InvalidRegisterException.prototype);
+    }
+}
