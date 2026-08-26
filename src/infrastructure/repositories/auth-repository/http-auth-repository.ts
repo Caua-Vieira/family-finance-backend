@@ -26,7 +26,7 @@ export class HttpAuthRepository implements AuthRepository {
         }
     }
 
-    async createUserWithHousehold(data: CreateUserDTO): Promise<User> {
+    async createUserWithHousehold(data: CreateUserDTO): Promise<{ user: User; household: Household }> {
         const queryRunner = this.database.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
@@ -47,7 +47,7 @@ export class HttpAuthRepository implements AuthRepository {
             await queryRunner.manager.save(user);
 
             await queryRunner.commitTransaction();
-            return user;
+            return { user, household };
         } catch {
             await queryRunner.rollbackTransaction();
             throw new DatabaseException("Ocorreu um erro ao criar o usuário");
