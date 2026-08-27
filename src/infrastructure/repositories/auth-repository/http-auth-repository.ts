@@ -5,6 +5,7 @@ import { User } from "../../entities/users";
 import { Household } from "../../entities/household";
 import { Database } from "../../database/database";
 import { CreateUserDTO } from "../../../domain/types/create-user-dto";
+import { generateInviteCode } from "../../../utils/generate-invite-code";
 
 export class HttpAuthRepository implements AuthRepository {
     constructor(@Inject private database: Database) { }
@@ -17,7 +18,15 @@ export class HttpAuthRepository implements AuthRepository {
         }
     }
 
-    async createUserWithHousehold(data: CreateUserDTO): Promise<User> {
+    async findHouseholdByInviteCode(inviteCode: string): Promise<Household | null> {
+        try {
+            return await this.database.getRepository(Household).findOne({ where: { inviteCode } });
+        } catch {
+            throw new DatabaseException("Ocorreu um erro ao buscar informações");
+        }
+    }
+
+    async createUserWithHousehold(data: CreateUserDTO): Promise<{ user: User; household: Household }> {
         const queryRunner = this.database.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
@@ -25,6 +34,7 @@ export class HttpAuthRepository implements AuthRepository {
         try {
             const household = queryRunner.manager.create(Household, {
                 name: data.householdName,
+                inviteCode: generateInviteCode(),
             });
             await queryRunner.manager.save(household);
 
@@ -37,12 +47,27 @@ export class HttpAuthRepository implements AuthRepository {
             await queryRunner.manager.save(user);
 
             await queryRunner.commitTransaction();
-            return user;
+            return { user, household };
         } catch {
             await queryRunner.rollbackTransaction();
             throw new DatabaseException("Ocorreu um erro ao criar o usuário");
         } finally {
             await queryRunner.release();
+        }
+    }
+
+    async createUserInExistingHousehold(data: CreateUserDTO, householdId: string): Promise<User> {
+        try {
+            const repository = this.database.getRepository(User);
+            const user = repository.create({
+                name: data.name,
+                email: data.email,
+                passwordHash: data.password,
+                householdId,
+            });
+            return await repository.save(user);
+        } catch {
+            throw new DatabaseException("Ocorreu um erro ao criar o usuário");
         }
     }
 }
