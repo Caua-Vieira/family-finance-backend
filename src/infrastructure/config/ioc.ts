@@ -15,6 +15,8 @@ import { DashboardRepository } from "../../domain/contracts/dashboard-repository
 import { HttpDashboardRepository } from "../repositories/dashboard-repository/http-dashboard-repository";
 import { HouseholdRepository } from "../../domain/contracts/household-repository";
 import { HttpHouseholdRepository } from "../repositories/household-repository/http-household-repository";
+import { RecurringTransactionRepository } from "../../domain/contracts/recurring-transaction-repository";
+import { HttpRecurringTransactionRepository } from "../repositories/recurring-transaction-repository/http-recurring-transaction-repository";
 import { MailService } from "../../domain/contracts/mail-service";
 import { NodemailerMailService } from "../services/mail-service/nodemailer-mail-service";
 
@@ -24,6 +26,7 @@ Container.bind(HouseholdRepository).to(HttpHouseholdRepository);
 Container.bind(CategoriesRepository).to(HttpCategoriesRepository);
 Container.bind(CardRepository).to(HttpCardRepository);
 Container.bind(TransactionRepository).to(HttpTransactionRepository);
+Container.bind(RecurringTransactionRepository).to(HttpRecurringTransactionRepository);
 Container.bind(BudgetRepository).to(HttpBudgetRepository);
 Container.bind(UsersRepository).to(HttpUsersRepository);
 Container.bind(DashboardRepository).to(HttpDashboardRepository);

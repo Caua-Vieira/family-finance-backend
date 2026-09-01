@@ -46,7 +46,7 @@ export class TransactionController {
 
     async list(req: Request, res: Response) {
         const { householdId } = (req as any).user;
-        const { startDate, endDate, minAmount, maxAmount, type, categoryId, cardId } = req.query;
+        const { startDate, endDate, minAmount, maxAmount, type, categoryId, cardId, month, year } = req.query;
 
         const filters: TransactionFiltersDTO = {
             startDate: parseDate(startDate),
@@ -58,7 +58,14 @@ export class TransactionController {
             cardId: typeof cardId === "string" ? cardId : undefined,
         };
 
-        const transactions = await this.transactionUseCase.list(householdId, filters);
+        const resolvedMonth = parseNumber(month);
+        const resolvedYear = parseNumber(year);
+        const period =
+            resolvedMonth !== undefined && resolvedYear !== undefined
+                ? { month: resolvedMonth, year: resolvedYear }
+                : undefined;
+
+        const transactions = await this.transactionUseCase.list(householdId, filters, period);
 
         res.status(200).json(transactions);
     }

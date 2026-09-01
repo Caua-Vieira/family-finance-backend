@@ -1,0 +1,25 @@
+name: Generate Recurring Transactions
+
+on:
+  schedule:
+    - cron: '0 6 1 * *'  # todo dia 1º do mês
+  workflow_dispatch:  # permite disparar manualmente pelo GitHub
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chama endpoint de geração de recorrências
+        run: |
+          response=$(curl -s -o /tmp/response.json -w "%{http_code}" -X POST \
+            https://family-finance-backend-cbcq.onrender.com/api/recurring/generate \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json")
+
+          echo "Status: $response"
+          cat /tmp/response.json
+
+          if [ "$response" -ge 400 ]; then
+            echo "Falha ao gerar recorrências"
+            exit 1
+          fi

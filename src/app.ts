@@ -10,6 +10,7 @@ import { budgetRoutes } from "./infrastructure/interfaces/routes/budget.routes";
 import { usersRoutes } from "./infrastructure/interfaces/routes/users.routes";
 import { dashboardRoutes } from "./infrastructure/interfaces/routes/dashboard.routes";
 import { householdRoutes } from "./infrastructure/interfaces/routes/household.routes";
+import { recurringRoutes } from "./infrastructure/interfaces/routes/recurring.routes";
 import { errorHandler } from "./middleware/error-handler";
 
 const app = express();
@@ -30,6 +31,7 @@ apiRouter.use("/budgets", budgetRoutes());
 apiRouter.use("/users", usersRoutes());
 apiRouter.use("/dashboard", dashboardRoutes());
 apiRouter.use("/household", householdRoutes());
+apiRouter.use("/recurring", recurringRoutes());
 
 app.use("/api", apiRouter);
 

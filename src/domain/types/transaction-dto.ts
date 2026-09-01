@@ -8,4 +8,5 @@ export interface TransactionDTO {
     cardId?: string | null;
     userId?: string;
     householdId: string;
+    recurringTransactionId?: string | null;
 }

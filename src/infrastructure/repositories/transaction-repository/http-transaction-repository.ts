@@ -45,6 +45,22 @@ export class HttpTransactionRepository implements TransactionRepository {
         }
     }
 
+    async findGeneratedRecurringIds(periodStart: Date, periodEnd: Date): Promise<string[]> {
+        try {
+            const rows = await this.database.getRepository(Transaction)
+                .createQueryBuilder("transaction")
+                .select("DISTINCT transaction.recurringTransactionId", "recurringTransactionId")
+                .where("transaction.recurringTransactionId IS NOT NULL")
+                .andWhere("transaction.date >= :periodStart", { periodStart })
+                .andWhere("transaction.date <= :periodEnd", { periodEnd })
+                .getRawMany<{ recurringTransactionId: string }>();
+
+            return rows.map((row) => row.recurringTransactionId);
+        } catch (error) {
+            throw new DatabaseException("Ocorreu um erro ao buscar os lançamentos recorrentes já gerados");
+        }
+    }
+
     async update(data: TransactionDTO): Promise<void> {
         const { id, householdId, ...rest } = data;
 
