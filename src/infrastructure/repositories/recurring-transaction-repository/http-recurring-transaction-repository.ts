@@ -35,6 +35,19 @@ export class HttpRecurringTransactionRepository implements RecurringTransactionR
         return await this.findByIdOrFail(id!, householdId);
     }
 
+    async delete(id: string, householdId: string): Promise<void> {
+        let result;
+        try {
+            result = await this.database.getRepository(RecurringTransaction).delete({ id, householdId });
+        } catch {
+            throw new DatabaseException("Ocorreu um erro ao excluir a regra de recorrência");
+        }
+
+        if (!result.affected) {
+            throw new NotFoundException("Regra de recorrência não encontrada");
+        }
+    }
+
     async findByHouseholdId(householdId: string): Promise<RecurringTransaction[]> {
         try {
             return await this.database.getRepository(RecurringTransaction).find({

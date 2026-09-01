@@ -40,6 +40,10 @@ export class RecurringTransactionUseCase {
         return this.recurringTransactionRepository.update(input);
     }
 
+    async delete(id: string, householdId: string): Promise<void> {
+        await this.recurringTransactionRepository.delete(id, householdId);
+    }
+
     async list(householdId: string): Promise<RecurringTransaction[]> {
         return this.recurringTransactionRepository.findByHouseholdId(householdId);
     }

@@ -61,6 +61,15 @@ export class RecurringTransactionController {
         res.status(200).json(rule);
     }
 
+    async delete(req: Request, res: Response) {
+        const id = String(req.params.id);
+        const { householdId } = (req as any).user;
+
+        await this.recurringTransactionUseCase.delete(id, householdId);
+
+        res.status(204).send();
+    }
+
     async generate(req: Request, res: Response) {
         const month = this.parseMonthOrYear(req.body.month);
         const year = this.parseMonthOrYear(req.body.year);

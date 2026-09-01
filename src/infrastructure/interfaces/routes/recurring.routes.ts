@@ -12,6 +12,7 @@ export const recurringRoutes = (): Router => {
     router.get("/", authMiddleware, (req, res) => recurringTransactionController.list(req, res));
     router.post("/", authMiddleware, (req, res) => recurringTransactionController.create(req, res));
     router.put("/:id", authMiddleware, (req, res) => recurringTransactionController.update(req, res));
+    router.delete("/:id", authMiddleware, (req, res) => recurringTransactionController.delete(req, res));
 
     return router;
 };
