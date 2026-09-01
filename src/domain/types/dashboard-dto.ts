@@ -32,6 +32,7 @@ export interface DashboardSummaryDTO {
     income: number;
     expenses: number;
     balance: number;
+    isProjection?: boolean;
     categories: DashboardCategorySummaryDTO[];
     previousMonth: {
         month: number;

@@ -1,11 +1,17 @@
 import { Inject } from "typescript-ioc";
 import { DashboardRepository } from "../../domain/contracts/dashboard-repository";
-import { DashboardSummaryDTO } from "../../domain/types/dashboard-dto";
+import { CategoriesRepository } from "../../domain/contracts/categories-repository";
+import { DashboardSummaryDTO, CategorySpendingDTO } from "../../domain/types/dashboard-dto";
+import { ProjectedTransactionDTO } from "../../domain/types/projected-transaction-dto";
+import { RecurringTransactionUseCase } from "./recurring-transaction-usecase";
+import { isFutureMonth } from "./utils/month-period";
 
 export class DashboardUseCase {
 
     constructor(
-        @Inject private readonly dashboardRepository: DashboardRepository
+        @Inject private readonly dashboardRepository: DashboardRepository,
+        @Inject private readonly categoriesRepository: CategoriesRepository,
+        @Inject private readonly recurringTransactionUseCase: RecurringTransactionUseCase
     ) { }
 
     async getSummary(householdId: string, month: number, year: number): Promise<DashboardSummaryDTO> {
@@ -17,13 +23,27 @@ export class DashboardUseCase {
             this.dashboardRepository.getCategorySpending(householdId, month, year),
         ]);
 
+        const isProjection = isFutureMonth({ month, year });
+
+        let income = current.income;
+        let expenses = current.expenses;
+        let categories = categorySpending;
+
+        if (isProjection) {
+            const projected = await this.recurringTransactionUseCase.getProjectedForMonth(householdId, month, year);
+            const totals = await this.applyProjection(householdId, categorySpending, projected);
+            income += totals.projectedIncome;
+            expenses += totals.projectedExpenses;
+            categories = totals.categories;
+        }
+
         return {
             month,
             year,
-            income: current.income,
-            expenses: current.expenses,
-            balance: current.income - current.expenses,
-            categories: categorySpending.map((category) => ({
+            income,
+            expenses,
+            balance: income - expenses,
+            categories: categories.map((category) => ({
                 ...category,
                 percentageSpent: this.calculatePercentage(category.spent, category.budgeted),
             })),
@@ -32,9 +52,52 @@ export class DashboardUseCase {
                 year: previousYear,
                 income: previous.income,
                 expenses: previous.expenses,
-                expensesVariationPercentage: this.calculatePercentageVariation(current.expenses, previous.expenses),
+                expensesVariationPercentage: this.calculatePercentageVariation(expenses, previous.expenses),
             },
+            ...(isProjection ? { isProjection: true } : {}),
         };
+    }
+
+    private async applyProjection(
+        householdId: string,
+        categorySpending: CategorySpendingDTO[],
+        projected: ProjectedTransactionDTO[]
+    ): Promise<{ projectedIncome: number; projectedExpenses: number; categories: CategorySpendingDTO[] }> {
+        if (projected.length === 0) {
+            return { projectedIncome: 0, projectedExpenses: 0, categories: categorySpending };
+        }
+
+        const allCategories = await this.categoriesRepository.findByHouseholdId(householdId);
+        const parentById = new Map<number, number | null>();
+        allCategories.forEach((category) => {
+            parentById.set(Number(category.id), category.parentId === null ? null : Number(category.parentId));
+        });
+
+        let projectedIncome = 0;
+        let projectedExpenses = 0;
+        const extraByMainCategory = new Map<number, number>();
+
+        for (const item of projected) {
+            if (item.type === "income") {
+                projectedIncome += item.amount;
+                continue;
+            }
+
+            projectedExpenses += item.amount;
+
+            if (item.categoryId === null) continue;
+            const categoryId = Number(item.categoryId);
+            const parentId = parentById.get(categoryId);
+            const mainCategoryId = parentId == null ? categoryId : parentId;
+            extraByMainCategory.set(mainCategoryId, (extraByMainCategory.get(mainCategoryId) ?? 0) + item.amount);
+        }
+
+        const categories = categorySpending.map((category) => {
+            const extra = extraByMainCategory.get(category.categoryId) ?? 0;
+            return extra > 0 ? { ...category, spent: category.spent + extra } : category;
+        });
+
+        return { projectedIncome, projectedExpenses, categories };
     }
 
     private getPreviousPeriod(month: number, year: number): { previousMonth: number; previousYear: number } {

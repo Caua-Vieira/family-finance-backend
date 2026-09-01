@@ -2,13 +2,17 @@ import { Inject } from "typescript-ioc";
 import { TransactionRepository } from "../../domain/contracts/transaction-repository";
 import { TransactionDTO } from "../../domain/types/transaction-dto";
 import { TransactionFiltersDTO } from "../../domain/types/transaction-filters-dto";
+import { ProjectedTransactionDTO } from "../../domain/types/projected-transaction-dto";
 import { Transaction } from "../../infrastructure/entities/transactions";
 import { ImportExpensesInput } from "../../domain/types/import-expenses-dto";
+import { RecurringTransactionUseCase } from "./recurring-transaction-usecase";
+import { isFutureMonth, MonthPeriod } from "./utils/month-period";
 
 export class TransactionUseCase {
 
     constructor(
-        @Inject private readonly transactionRepository: TransactionRepository
+        @Inject private readonly transactionRepository: TransactionRepository,
+        @Inject private readonly recurringTransactionUseCase: RecurringTransactionUseCase
     ) { }
 
     async create(input: TransactionDTO): Promise<void> {
@@ -34,8 +38,24 @@ export class TransactionUseCase {
         return transactions.length;
     }
 
-    async list(householdId: string, filters: TransactionFiltersDTO): Promise<Transaction[]> {
-        return this.transactionRepository.findByHouseholdId(householdId, filters);
+    async list(
+        householdId: string,
+        filters: TransactionFiltersDTO,
+        period?: MonthPeriod
+    ): Promise<(Transaction | ProjectedTransactionDTO)[]> {
+        const transactions = await this.transactionRepository.findByHouseholdId(householdId, filters);
+
+        if (!period || !isFutureMonth(period)) {
+            return transactions;
+        }
+
+        const projected = await this.recurringTransactionUseCase.getProjectedForMonth(
+            householdId,
+            period.month,
+            period.year
+        );
+
+        return [...transactions, ...projected];
     }
 
     async update(input: TransactionDTO): Promise<void> {
