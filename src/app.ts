@@ -11,6 +11,7 @@ import { usersRoutes } from "./infrastructure/interfaces/routes/users.routes";
 import { dashboardRoutes } from "./infrastructure/interfaces/routes/dashboard.routes";
 import { householdRoutes } from "./infrastructure/interfaces/routes/household.routes";
 import { recurringRoutes } from "./infrastructure/interfaces/routes/recurring.routes";
+import { statementEntriesRoutes } from "./infrastructure/interfaces/routes/statement-entries.routes";
 import { errorHandler } from "./middleware/error-handler";
 
 const app = express();
@@ -32,6 +33,7 @@ apiRouter.use("/users", usersRoutes());
 apiRouter.use("/dashboard", dashboardRoutes());
 apiRouter.use("/household", householdRoutes());
 apiRouter.use("/recurring", recurringRoutes());
+apiRouter.use("/statement-entries", statementEntriesRoutes());
 
 app.use("/api", apiRouter);
 
