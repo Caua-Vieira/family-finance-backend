@@ -5,6 +5,10 @@ import { RecurringTransaction } from "../../entities/recurring-transactions";
 import { Database } from "../../database/database";
 import { RecurringTransactionDTO } from "../../../domain/types/recurring-transaction-dto";
 
+function toDateString(date: Date): string {
+    return date.toISOString().slice(0, 10);
+}
+
 export class HttpRecurringTransactionRepository implements RecurringTransactionRepository {
     constructor(@Inject private database: Database) { }
 
@@ -61,13 +65,30 @@ export class HttpRecurringTransactionRepository implements RecurringTransactionR
 
     async findActiveForPeriod(periodStart: Date, periodEnd: Date): Promise<RecurringTransaction[]> {
         try {
-            return await this.database.getRepository(RecurringTransaction)
-                .createQueryBuilder("recurring")
-                .where("recurring.active = :active", { active: true })
-                .andWhere("recurring.startDate <= :periodEnd", { periodEnd })
-                .andWhere("(recurring.endDate IS NULL OR recurring.endDate >= :periodStart)", { periodStart })
-                .getMany();
+            return await this.database.query<RecurringTransaction[]>(
+                `SELECT
+                    id,
+                    household_id AS "householdId",
+                    type,
+                    amount,
+                    description,
+                    category_id AS "categoryId",
+                    card_id AS "cardId",
+                    user_id AS "userId",
+                    day_of_month AS "dayOfMonth",
+                    start_date AS "startDate",
+                    end_date AS "endDate",
+                    active,
+                    created_at AS "createdAt",
+                    updated_at AS "updatedAt"
+                 FROM recurring_transactions
+                 WHERE active = true
+                   AND start_date <= $1::date
+                   AND (end_date IS NULL OR end_date >= $2::date)`,
+                [toDateString(periodEnd), toDateString(periodStart)]
+            );
         } catch (error) {
+            console.error("findActiveForPeriod:", error);
             throw new DatabaseException("Ocorreu um erro ao buscar as regras de recorrência");
         }
     }
