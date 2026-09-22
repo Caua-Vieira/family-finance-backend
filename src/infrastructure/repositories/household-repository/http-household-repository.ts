@@ -14,4 +14,12 @@ export class HttpHouseholdRepository implements HouseholdRepository {
             throw new DatabaseException("Ocorreu um erro ao buscar informações da família");
         }
     }
+
+    async findAllWithUsers(): Promise<Household[]> {
+        try {
+            return await this.database.getRepository(Household).find({ relations: { users: true } });
+        } catch {
+            throw new DatabaseException("Ocorreu um erro ao buscar as famílias");
+        }
+    }
 }
