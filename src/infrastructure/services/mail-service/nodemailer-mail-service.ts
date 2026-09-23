@@ -1,7 +1,13 @@
 import nodemailer, { Transporter } from "nodemailer";
 import { Singleton } from "typescript-ioc";
-import { MailService, WelcomeEmailData } from "../../../domain/contracts/mail-service";
+import { MailService, MonthlySummaryEmailData, WelcomeEmailData } from "../../../domain/contracts/mail-service";
 import { buildWelcomeEmailHtml } from "./templates/welcome-email";
+import { buildMonthlySummaryEmailHtml } from "./templates/monthly-summary-email";
+
+const MONTH_NAMES = [
+    "janeiro", "fevereiro", "março", "abril", "maio", "junho",
+    "julho", "agosto", "setembro", "outubro", "novembro", "dezembro",
+];
 
 @Singleton
 export class NodemailerMailService implements MailService {
@@ -35,6 +41,21 @@ export class NodemailerMailService implements MailService {
             });
         } catch (err) {
             console.error("Erro ao enviar e-mail de boas-vindas:", err);
+        }
+    }
+
+    async sendMonthlySummaryEmail(data: MonthlySummaryEmailData): Promise<void> {
+        const monthName = MONTH_NAMES[data.summary.month - 1];
+
+        try {
+            await this.transporter.sendMail({
+                from: this.from,
+                to: data.to,
+                subject: `Seu resumo financeiro de ${monthName} — ${data.householdName}`,
+                html: buildMonthlySummaryEmailHtml(data),
+            });
+        } catch (err) {
+            console.error("Erro ao enviar e-mail de resumo mensal:", err);
         }
     }
 }
