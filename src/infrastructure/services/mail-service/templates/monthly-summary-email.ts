@@ -48,8 +48,8 @@ function buildCategoryRows(categories: DashboardCategorySummaryDTO[]): string {
         return `
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:14px;">
                 <tr>
-                    <td style="font-size:13px;color:#374151;padding-bottom:6px;">${category.categoryName}</td>
-                    <td style="font-size:13px;color:#111827;font-weight:600;text-align:right;padding-bottom:6px;font-variant-numeric:tabular-nums;">${formatCurrency(category.spent)}</td>
+                    <td style="font-size:13px;color:#374151;padding-bottom:6px;word-break:break-word;">${category.categoryName}</td>
+                    <td style="font-size:13px;color:#111827;font-weight:600;text-align:right;padding-bottom:6px;padding-left:8px;white-space:nowrap;font-variant-numeric:tabular-nums;">${formatCurrency(category.spent)}</td>
                 </tr>
                 <tr>
                     <td colspan="2">
@@ -76,56 +76,71 @@ export function buildMonthlySummaryEmailHtml(data: MonthlySummaryEmailData): str
     const balanceBg = isPositive ? "#ecfdf5" : "#fef2f2";
 
     return `
-        <div style="background-color:#eef2f1;padding:40px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;">
-                <tr>
-                    <td style="background-color:#0f766e;border-radius:16px 16px 0 0;padding:28px 32px;">
-                        <p style="margin:0;color:#a7f3d0;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Family Finance</p>
-                        <h1 style="margin:8px 0 0;color:#ffffff;font-size:22px;line-height:1.3;">Resumo de ${monthLabel}</h1>
-                        <p style="margin:4px 0 0;color:#ccfbf1;font-size:13px;">${data.householdName}</p>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="background-color:#ffffff;padding:32px;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
-                        <p style="font-size:15px;color:#1f2937;margin:0 0 24px;">Olá, ${data.name}! Veja como ficaram as finanças da família nesse mês.</p>
+        <style>
+            @media only screen and (max-width: 480px) {
+                .ff-header-pad { padding: 22px 20px !important; }
+                .ff-card-pad { padding: 22px 18px !important; }
+                .ff-footer-pad { padding: 16px 18px !important; }
+                .ff-balance-value { font-size: 25px !important; }
+                .ff-stat-table { table-layout: fixed !important; }
+                .ff-stat-col { display: block !important; width: 100% !important; margin-bottom: 8px; }
+                .ff-stat-spacer { display: none !important; }
+            }
+        </style>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#eef2f1;">
+            <tr>
+                <td align="center" style="padding:40px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" align="center" style="max-width:520px;margin:0 auto;">
+                        <tr>
+                            <td class="ff-header-pad" style="background-color:#0f766e;border-radius:16px 16px 0 0;padding:28px 32px;">
+                                <p style="margin:0;color:#a7f3d0;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Family Finance</p>
+                                <h1 style="margin:8px 0 0;color:#ffffff;font-size:22px;line-height:1.3;">Resumo de ${monthLabel}</h1>
+                                <p style="margin:4px 0 0;color:#ccfbf1;font-size:13px;">${data.householdName}</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="ff-card-pad" style="background-color:#ffffff;padding:32px;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
+                                <p style="font-size:15px;color:#1f2937;margin:0 0 24px;">Olá, ${data.name}! Veja como ficaram as finanças da família nesse mês.</p>
 
-                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${balanceBg};border-radius:12px;margin-bottom:16px;">
-                            <tr>
-                                <td style="padding:18px 22px;">
-                                    <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:${balanceColor};">Saldo do mês</p>
-                                    <p style="margin:4px 0 0;font-size:30px;font-weight:700;color:${balanceColor};font-variant-numeric:tabular-nums;">${formatCurrency(summary.balance)}</p>
-                                </td>
-                            </tr>
-                        </table>
+                                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${balanceBg};border-radius:12px;margin-bottom:16px;">
+                                    <tr>
+                                        <td style="padding:18px 22px;">
+                                            <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:${balanceColor};">Saldo do mês</p>
+                                            <p class="ff-balance-value" style="margin:4px 0 0;font-size:30px;font-weight:700;color:${balanceColor};font-variant-numeric:tabular-nums;">${formatCurrency(summary.balance)}</p>
+                                        </td>
+                                    </tr>
+                                </table>
 
-                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
-                            <tr>
-                                <td width="48%" style="width:48%;background-color:#f0fdf4;border-radius:10px;padding:14px 16px;">
-                                    <p style="margin:0;font-size:11px;font-weight:700;text-transform:uppercase;color:#16a34a;">Receitas</p>
-                                    <p style="margin:4px 0 0;font-size:17px;font-weight:700;color:#14532d;font-variant-numeric:tabular-nums;">${formatCurrency(summary.income)}</p>
-                                </td>
-                                <td width="4%" style="width:4%;font-size:1px;line-height:1px;">&nbsp;</td>
-                                <td width="48%" style="width:48%;background-color:#fef2f2;border-radius:10px;padding:14px 16px;">
-                                    <p style="margin:0;font-size:11px;font-weight:700;text-transform:uppercase;color:#dc2626;">Despesas</p>
-                                    <p style="margin:4px 0 0;font-size:17px;font-weight:700;color:#7f1d1d;font-variant-numeric:tabular-nums;">${formatCurrency(summary.expenses)}</p>
-                                </td>
-                            </tr>
-                        </table>
+                                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="ff-stat-table" style="margin-bottom:20px;">
+                                    <tr>
+                                        <td width="48%" class="ff-stat-col" style="width:48%;background-color:#f0fdf4;border-radius:10px;padding:14px 16px;">
+                                            <p style="margin:0;font-size:11px;font-weight:700;text-transform:uppercase;color:#16a34a;">Receitas</p>
+                                            <p style="margin:4px 0 0;font-size:17px;font-weight:700;color:#14532d;font-variant-numeric:tabular-nums;">${formatCurrency(summary.income)}</p>
+                                        </td>
+                                        <td width="4%" class="ff-stat-spacer" style="width:4%;font-size:1px;line-height:1px;">&nbsp;</td>
+                                        <td width="48%" class="ff-stat-col" style="width:48%;background-color:#fef2f2;border-radius:10px;padding:14px 16px;">
+                                            <p style="margin:0;font-size:11px;font-weight:700;text-transform:uppercase;color:#dc2626;">Despesas</p>
+                                            <p style="margin:4px 0 0;font-size:17px;font-weight:700;color:#7f1d1d;font-variant-numeric:tabular-nums;">${formatCurrency(summary.expenses)}</p>
+                                        </td>
+                                    </tr>
+                                </table>
 
-                        <p style="font-size:13px;color:#4b5563;margin:0 0 28px;line-height:1.6;">
-                            ${buildVariationLine(summary.previousMonth.expensesVariationPercentage, previousMonthLabel)}
-                        </p>
+                                <p style="font-size:13px;color:#4b5563;margin:0 0 28px;line-height:1.6;">
+                                    ${buildVariationLine(summary.previousMonth.expensesVariationPercentage, previousMonthLabel)}
+                                </p>
 
-                        <p style="font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#1f2937;margin:0 0 16px;">Maiores gastos por categoria</p>
-                        ${buildCategoryRows(summary.categories)}
-                    </td>
-                </tr>
-                <tr>
-                    <td style="background-color:#f9fafb;border-radius:0 0 16px 16px;padding:18px 32px;border:1px solid #e5e7eb;border-top:none;">
-                        <p style="font-size:12px;color:#9ca3af;margin:0;">Você recebeu este e-mail porque faz parte da família ${data.householdName} no Family Finance.</p>
-                    </td>
-                </tr>
-            </table>
-        </div>
+                                <p style="font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#1f2937;margin:0 0 16px;">Maiores gastos por categoria</p>
+                                ${buildCategoryRows(summary.categories)}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="ff-footer-pad" style="background-color:#f9fafb;border-radius:0 0 16px 16px;padding:18px 32px;border:1px solid #e5e7eb;border-top:none;">
+                                <p style="font-size:12px;color:#9ca3af;margin:0;">Você recebeu este e-mail porque faz parte da família ${data.householdName} no Family Finance.</p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
     `;
 }
