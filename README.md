@@ -1,6 +1,6 @@
 # Family Finance — Backend
 
-API REST para gestão financeira familiar (multi-usuário), com autenticação JWT, controle de transações, categorias, cartões, orçamentos mensais e um dashboard de resumo financeiro.
+API REST para gestão financeira familiar (multi-usuário), com autenticação JWT, controle de transações, lançamentos recorrentes, categorias, cartões, extrato de fatura, orçamentos mensais, dashboard de resumo financeiro e relatório mensal por e-mail.
 
 > **Frontend:** o cliente web deste projeto vive em um repositório separado — [family-finance-frontend](https://github.com/Caua-Vieira/family-finance-frontend).
 
@@ -23,7 +23,7 @@ API REST para gestão financeira familiar (multi-usuário), com autenticação J
 
 ## Sobre o Projeto
 
-Family Finance é uma API para famílias organizarem suas finanças em conjunto. Cada usuário pertence a uma **household** (o "núcleo familiar"), e todos os dados financeiros — transações, categorias, cartões e orçamentos — são compartilhados entre os membros da mesma household, permitindo que mais de uma pessoa registre e acompanhe os gastos do mesmo grupo.
+Family Finance é uma API para famílias organizarem suas finanças em conjunto. Cada usuário pertence a uma **household** (o "núcleo familiar"), e todos os dados financeiros — transações, recorrências, categorias, cartões, extratos e orçamentos — são compartilhados entre os membros da mesma household, permitindo que mais de uma pessoa registre e acompanhe os gastos do mesmo grupo. Novos membros entram na household existente usando o **código de convite** dela.
 
 O backend expõe a API consumida pelo [family-finance-frontend](https://github.com/Caua-Vieira/family-finance-frontend), responsável pela interface web.
 
@@ -38,7 +38,7 @@ src/
 ├── domain/          # Contratos (interfaces de repositório), DTOs e erros de negócio
 ├── application/     # Casos de uso (regras de negócio)
 ├── infrastructure/  # Implementações concretas: TypeORM, controllers, rotas, DI, config
-├── middleware/       # Autenticação JWT e tratamento de erros
+├── middleware/       # Autenticação JWT, autenticação dos crons e tratamento de erros
 ├── app.ts            # Configuração do Express (middlewares e rotas)
 └── server.ts          # Bootstrap: conexão com o banco e subida do servidor
 ```
@@ -55,14 +55,16 @@ Todo o acesso a dados é escopado por `householdId`, extraído do token JWT — 
 
 ## Modelo de Domínio
 
-| Entidade      | Descrição                                                                 |
-|---------------|----------------------------------------------------------------------------|
-| `Household`   | Núcleo familiar; agrupa usuários e todos os dados financeiros              |
-| `User`        | Usuário autenticável, pertence a uma household                            |
-| `Category`    | Categoria de transação, com suporte a hierarquia (categoria pai/filha)     |
-| `Card`        | Cartão associado a um usuário dono, dentro da household                    |
-| `Transaction` | Lançamento de receita (`income`) ou despesa (`expense`)                    |
-| `Budget`      | Orçamento estimado por categoria, mês e ano                                |
+| Entidade               | Descrição                                                                 |
+|------------------------|----------------------------------------------------------------------------|
+| `Household`            | Núcleo familiar; agrupa usuários e todos os dados financeiros. Tem um código de convite único |
+| `User`                 | Usuário autenticável, pertence a uma household                            |
+| `Category`             | Categoria de transação, com suporte a hierarquia (categoria pai/filha)     |
+| `Card`                 | Cartão associado a um usuário dono, dentro da household                    |
+| `Transaction`          | Lançamento de receita (`income`) ou despesa (`expense`); pode ter sido gerado por uma recorrência |
+| `RecurringTransaction` | Regra de lançamento mensal (dia do mês, início, fim opcional, ativa/pausada) |
+| `StatementEntry`       | Item de detalhamento da fatura de um cartão. Puramente informativo: não entra no dashboard nem no orçamento |
+| `Budget`               | Orçamento estimado por categoria, mês e ano                                |
 
 ---
 
@@ -78,21 +80,27 @@ Todo o acesso a dados é escopado por `householdId`, extraído do token JWT — 
 | Autenticação           | JWT (jsonwebtoken) + bcrypt   |
 | Upload de Arquivos     | Multer                        |
 | Importação de Planilhas| SheetJS (xlsx)                |
+| E-mail                 | Nodemailer (SMTP, via Resend) |
 | Injeção de Dependência | typescript-ioc                |
 | Containerização        | Docker + Docker Compose       |
-| CI/CD                  | GitHub Actions                |
+| CI/CD e Agendamentos   | GitHub Actions                |
 
 ---
 
 ## Funcionalidades
 
-- **Autenticação** — Registro (cria a household junto com o primeiro usuário) e login, com token JWT válido por 1 dia
+- **Autenticação** — Registro e login, com token JWT válido por 1 dia. No registro, o usuário cria uma nova household (`householdName`) ou entra em uma existente (`inviteCode`)
+- **E-mail de boas-vindas** — Enviado no cadastro, com o código de convite da household
+- **Household** — Consulta dos dados da household do usuário, incluindo o código de convite
 - **Categorias** — CRUD com suporte a subcategorias (categoria pai/filha)
 - **Cartões** — CRUD de cartões vinculados a um usuário responsável
 - **Transações** — CRUD de receitas e despesas, com filtros por período, valor, tipo, categoria e cartão
 - **Importação via Planilha** — Upload de arquivo Excel (`.xlsx`/`.xls`, até 5MB) para importar despesas em lote
+- **Transações Recorrentes** — Regras mensais (dia do mês, início e fim opcional) que podem ser pausadas. O lançamento do mês atual é gerado na criação da regra, e os meses seguintes são gerados por um cron mensal. Ao consultar meses futuros, as regras ativas aparecem como lançamentos **projetados** (`isProjected`)
+- **Extrato de Fatura** — Detalhamento dos itens da fatura de cada cartão (`StatementEntry`), filtrável por período e cartão. É informativo e não altera os totais do dashboard nem do orçamento
 - **Orçamentos (Budgets)** — Definição de valor estimado de gasto por categoria/mês/ano, com filtros
-- **Dashboard** — Resumo mensal com receitas, despesas, saldo, gasto por categoria (orçado vs. realizado) e comparação com o mês anterior
+- **Dashboard** — Resumo mensal com receitas, despesas, saldo, gasto por categoria (orçado vs. realizado) e comparação com o mês anterior. Para meses futuros, o resumo é uma projeção (`isProjection: true`) baseada nas recorrências
+- **Relatório Mensal por E-mail** — Todo dia 1º, cada membro de cada household recebe por e-mail o resumo financeiro do mês anterior
 - **Isolamento por Household** — Todas as consultas são escopadas ao `householdId` do usuário autenticado
 - **Tratamento de Erros Centralizado** — Exceções de domínio mapeadas para respostas HTTP padronizadas
 
@@ -104,7 +112,7 @@ Todo o acesso a dados é escopado por `householdId`, extraído do token JWT — 
 
 | Método | Rota            | Descrição                                          | Auth |
 |--------|-----------------|-----------------------------------------------------|------|
-| POST   | `/api/auth/register` | Cria a household e o primeiro usuário — retorna token JWT | Não  |
+| POST   | `/api/auth/register` | Cria o usuário (em uma nova household ou via código de convite) — retorna token JWT | Não  |
 | POST   | `/api/auth/login`    | Login — retorna token JWT                          | Não  |
 
 **Body — Registro:**
@@ -116,6 +124,18 @@ Todo o acesso a dados é escopado por `householdId`, extraído do token JWT — 
   "householdName": "Família Silva"
 }
 ```
+
+Para entrar em uma household existente, troque `householdName` por `inviteCode`:
+```json
+{
+  "name": "Ciclano",
+  "email": "outro@email.com",
+  "password": "suasenha",
+  "inviteCode": "ABC123"
+}
+```
+
+> O código de convite tem 6 caracteres e aparece no frontend, na barra lateral, e no e-mail de boas-vindas.
 
 **Body — Login:**
 ```json
@@ -137,6 +157,11 @@ Todo o acesso a dados é escopado por `householdId`, extraído do token JWT — 
 Todos os endpoints abaixo exigem o header:
 ```
 Authorization: Bearer <token>
+```
+
+A exceção são os endpoints disparados pelos crons (`/api/recurring/generate` e `/api/reports/monthly-summary`), que usam o `CRON_SECRET` no lugar do JWT:
+```
+Authorization: Bearer <CRON_SECRET>
 ```
 
 ### Categorias
@@ -179,7 +204,53 @@ Authorization: Bearer <token>
 }
 ```
 
-**Filtros disponíveis (GET, via query string):** `startDate`, `endDate`, `minAmount`, `maxAmount`, `type`, `categoryId`, `cardId`
+**Filtros disponíveis (GET, via query string):** `startDate`, `endDate`, `minAmount`, `maxAmount`, `type`, `categoryId`, `cardId`, `month`, `year`
+
+> Quando `month` e `year` são informados e apontam para um mês futuro, a resposta inclui os lançamentos projetados das recorrências ativas, marcados com `isProjected: true`.
+
+### Transações Recorrentes
+
+| Método | Rota                     | Descrição                                              | Auth |
+|--------|--------------------------|--------------------------------------------------------|------|
+| GET    | `/api/recurring`         | Lista as regras de recorrência da household            | JWT  |
+| POST   | `/api/recurring`         | Cria uma regra e já gera o lançamento do mês atual     | JWT  |
+| PUT    | `/api/recurring/:id`     | Atualiza uma regra (inclusive pausar/reativar com `active`) | JWT  |
+| DELETE | `/api/recurring/:id`     | Remove uma regra                                       | JWT  |
+| POST   | `/api/recurring/generate`| Gera os lançamentos do mês para todas as regras ativas (body opcional: `month`, `year`) | `CRON_SECRET` |
+
+**Body (POST/PUT):**
+```json
+{
+  "type": "expense",
+  "amount": 120.00,
+  "description": "Internet",
+  "categoryId": "3",
+  "cardId": null,
+  "dayOfMonth": 10,
+  "startDate": "2026-09-01",
+  "endDate": null
+}
+```
+
+### Extrato de Fatura (Statement Entries)
+
+| Método | Rota                          | Descrição                                   |
+|--------|-------------------------------|---------------------------------------------|
+| GET    | `/api/statement-entries`      | Lista itens de fatura (filtros: `startDate`, `endDate`, `cardId`) |
+| POST   | `/api/statement-entries`      | Cria um item de fatura                      |
+| PUT    | `/api/statement-entries/:id`  | Atualiza um item de fatura                  |
+| DELETE | `/api/statement-entries/:id`  | Remove um item de fatura                    |
+
+**Body (POST/PUT):**
+```json
+{
+  "cardId": 2,
+  "categoryId": 5,
+  "description": "Farmácia",
+  "amount": 48.90,
+  "date": "2026-09-12"
+}
+```
 
 ### Orçamentos (Budgets)
 
@@ -205,6 +276,12 @@ Authorization: Bearer <token>
 | Método | Rota          | Descrição                          |
 |--------|---------------|---------------------------------------|
 | GET    | `/api/users`  | Lista os usuários da household        |
+
+### Household
+
+| Método | Rota              | Descrição                                                   |
+|--------|-------------------|-------------------------------------------------------------|
+| GET    | `/api/household`  | Retorna a household do usuário (`id`, `name`, `currency`, `inviteCode`) |
 
 ### Dashboard
 
@@ -239,6 +316,19 @@ Authorization: Bearer <token>
 }
 ```
 
+> Para meses futuros, a resposta inclui `"isProjection": true` e os totais consideram as recorrências ativas.
+
+### Relatórios
+
+| Método | Rota                           | Descrição                                                | Auth |
+|--------|--------------------------------|----------------------------------------------------------|------|
+| POST   | `/api/reports/monthly-summary` | Envia por e-mail o resumo do mês a todos os membros de todas as households. Sem body, usa o mês anterior; aceita `month` e `year` opcionais | `CRON_SECRET` |
+
+**Resposta:**
+```json
+{ "sent": 4 }
+```
+
 ### Health Check
 
 | Método | Rota      | Descrição               | Auth |
@@ -267,7 +357,20 @@ DATABASE_URL=postgresql://postgres:postgres@localhost:5432/family_finance
 
 # Autenticação
 JWT_SECRET=seu_segredo_jwt_aqui
+
+# Token compartilhado com os crons do GitHub Actions
+CRON_SECRET=seu_segredo_cron_aqui
+
+# SMTP (e-mail de boas-vindas e relatório mensal) — ex.: Resend
+SMTP_HOST=smtp.resend.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=resend
+SMTP_PASS=sua_api_key
+MAIL_FROM="Family Finance <onboarding@resend.dev>"
 ```
+
+> O `.env.example` na raiz traz todas essas variáveis. Sem domínio próprio verificado no Resend, o remetente de teste `onboarding@resend.dev` só entrega para o e-mail dono da conta Resend.
 
 > A conexão com o banco é feita via `DATABASE_URL`. Ao apontar para um provedor gerenciado (ex: Neon), o SSL é habilitado automaticamente.
 
@@ -384,6 +487,17 @@ O projeto possui um pipeline de **GitHub Actions** configurado em `.github/workf
 
 > Lint e testes automatizados serão adicionados ao pipeline assim que forem configurados no projeto.
 
+### Tarefas agendadas
+
+A API não roda crons internamente. Dois workflows do GitHub Actions chamam endpoints protegidos por `CRON_SECRET` (configurado como *secret* no repositório) na API em produção:
+
+| Workflow                     | Agenda                          | Endpoint                          | O que faz                                   |
+|------------------------------|---------------------------------|-----------------------------------|---------------------------------------------|
+| `generate-recurring.yml`     | Dia 1º de cada mês, 06:00 UTC   | `POST /api/recurring/generate`    | Gera os lançamentos do mês das recorrências ativas |
+| `send-monthly-report.yml`    | Dia 1º de cada mês, 08:00 (Brasília) | `POST /api/reports/monthly-summary` | Envia o resumo do mês anterior por e-mail |
+
+Os dois também podem ser disparados manualmente pela aba **Actions** do GitHub (`workflow_dispatch`).
+
 ---
 
 ## Estrutura do Projeto
@@ -392,7 +506,9 @@ O projeto possui um pipeline de **GitHub Actions** configurado em `.github/workf
 family-finance-backend/
 ├── .github/
 │   └── workflows/
-│       └── ci.yml
+│       ├── ci.yml
+│       ├── generate-recurring.yml
+│       └── send-monthly-report.yml
 ├── src/
 │   ├── domain/
 │   │   ├── contracts/
@@ -400,7 +516,8 @@ family-finance-backend/
 │   │   └── types/
 │   ├── application/
 │   │   └── usecases/
-│   │       └── auth/
+│   │       ├── auth/
+│   │       └── utils/
 │   ├── infrastructure/
 │   │   ├── config/
 │   │   ├── database/
@@ -409,12 +526,18 @@ family-finance-backend/
 │   │   ├── interfaces/
 │   │   │   ├── controllers/
 │   │   │   └── routes/
-│   │   └── repositories/
+│   │   ├── repositories/
+│   │   └── services/
+│   │       └── mail-service/
+│   │           └── templates/
 │   ├── middleware/
 │   │   ├── auth-middleware.ts
+│   │   ├── cron-middleware.ts
 │   │   └── error-handler.ts
+│   ├── utils/
 │   ├── app.ts
 │   └── server.ts
+├── .env.example
 ├── docker-compose.yml
 ├── tsconfig.json
 └── package.json
