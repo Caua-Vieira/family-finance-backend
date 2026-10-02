@@ -20,6 +20,16 @@ export class HttpStatementEntryRepository implements StatementEntryRepository {
         }
     }
 
+    async createMany(data: StatementEntryDTO[]): Promise<void> {
+        try {
+            const repository = this.database.getRepository(StatementEntry);
+            await repository.save(repository.create(data));
+        } catch (error) {
+            console.error("StatementEntry.createMany:", error);
+            throw new DatabaseException("Ocorreu um erro ao importar os itens do extrato");
+        }
+    }
+
     async update(data: StatementEntryDTO): Promise<StatementEntry> {
         const { id, householdId, ...rest } = data;
 

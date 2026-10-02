@@ -98,6 +98,7 @@ Todo o acesso a dados é escopado por `householdId`, extraído do token JWT — 
 - **Importação via Planilha** — Upload de arquivo Excel (`.xlsx`/`.xls`, até 5MB) para importar despesas em lote
 - **Transações Recorrentes** — Regras mensais (dia do mês, início e fim opcional) que podem ser pausadas. O lançamento do mês atual é gerado na criação da regra, e os meses seguintes são gerados por um cron mensal. Ao consultar meses futuros, as regras ativas aparecem como lançamentos **projetados** (`isProjected`)
 - **Extrato de Fatura** — Detalhamento dos itens da fatura de cada cartão (`StatementEntry`), filtrável por período e cartão. É informativo e não altera os totais do dashboard nem do orçamento
+- **Importação de Extrato** — Upload do CSV/planilha da fatura em duas etapas (prévia → confirmação). O leitor detecta separador (`,` `;` tab), codificação (UTF-8/Latin-1), linhas antes do cabeçalho e valores em `1.234,56` ou `1,234.56`
 - **Orçamentos (Budgets)** — Definição de valor estimado de gasto por categoria/mês/ano, com filtros
 - **Dashboard** — Resumo mensal com receitas, despesas, saldo, gasto por categoria (orçado vs. realizado) e comparação com o mês anterior. Para meses futuros, o resumo é uma projeção (`isProjection: true`) baseada nas recorrências
 - **Relatório Mensal por E-mail** — Todo dia 1º, cada membro de cada household recebe por e-mail o resumo financeiro do mês anterior
@@ -240,6 +241,8 @@ Authorization: Bearer <CRON_SECRET>
 | POST   | `/api/statement-entries`      | Cria um item de fatura                      |
 | PUT    | `/api/statement-entries/:id`  | Atualiza um item de fatura                  |
 | DELETE | `/api/statement-entries/:id`  | Remove um item de fatura                    |
+| POST   | `/api/statement-entries/import/preview` | Lê um extrato (`.csv`, `.xlsx` ou `.xls`, até 5MB) e devolve a prévia dos itens **sem salvar**: marca os que já existem no cartão (`duplicate`) e sugere a subcategoria pelo histórico (`suggestedCategoryId`). `multipart/form-data` com `file` e `cardId` |
+| POST   | `/api/statement-entries/import` | Salva os itens revisados: `{ "cardId": 2, "entries": [{ "date", "description", "amount", "categoryId" }] }` (máx. 1000) |
 
 **Body (POST/PUT):**
 ```json
