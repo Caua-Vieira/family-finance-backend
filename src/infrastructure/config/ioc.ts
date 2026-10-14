@@ -19,6 +19,8 @@ import { RecurringTransactionRepository } from "../../domain/contracts/recurring
 import { HttpRecurringTransactionRepository } from "../repositories/recurring-transaction-repository/http-recurring-transaction-repository";
 import { StatementEntryRepository } from "../../domain/contracts/statement-entry-repository";
 import { HttpStatementEntryRepository } from "../repositories/statement-entry-repository/http-statement-entry-repository";
+import { InvestmentRepository } from "../../domain/contracts/investment-repository";
+import { HttpInvestmentRepository } from "../repositories/investment-repository/http-investment-repository";
 import { MailService } from "../../domain/contracts/mail-service";
 import { NodemailerMailService } from "../services/mail-service/nodemailer-mail-service";
 
@@ -30,6 +32,7 @@ Container.bind(CardRepository).to(HttpCardRepository);
 Container.bind(TransactionRepository).to(HttpTransactionRepository);
 Container.bind(RecurringTransactionRepository).to(HttpRecurringTransactionRepository);
 Container.bind(StatementEntryRepository).to(HttpStatementEntryRepository);
+Container.bind(InvestmentRepository).to(HttpInvestmentRepository);
 Container.bind(BudgetRepository).to(HttpBudgetRepository);
 Container.bind(UsersRepository).to(HttpUsersRepository);
 Container.bind(DashboardRepository).to(HttpDashboardRepository);

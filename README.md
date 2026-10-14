@@ -65,6 +65,7 @@ Todo o acesso a dados é escopado por `householdId`, extraído do token JWT — 
 | `RecurringTransaction` | Regra de lançamento mensal (dia do mês, início, fim opcional, ativa/pausada) |
 | `StatementEntry`       | Item de detalhamento da fatura de um cartão. Puramente informativo: não entra no dashboard nem no orçamento |
 | `Budget`               | Orçamento estimado por categoria, mês e ano                                |
+| `Investment`           | Posição de investimento (nome, tipo, instituição, valor aplicado e valor atual). Controle patrimonial à parte: não entra no dashboard nem no orçamento |
 
 ---
 
@@ -100,6 +101,7 @@ Todo o acesso a dados é escopado por `householdId`, extraído do token JWT — 
 - **Extrato de Fatura** — Detalhamento dos itens da fatura de cada cartão (`StatementEntry`), filtrável por período e cartão. É informativo e não altera os totais do dashboard nem do orçamento
 - **Importação de Extrato** — Upload do CSV/planilha da fatura em duas etapas (prévia → confirmação). O leitor detecta separador (`,` `;` tab), codificação (UTF-8/Latin-1), linhas antes do cabeçalho e valores em `1.234,56` ou `1,234.56`
 - **Orçamentos (Budgets)** — Definição de valor estimado de gasto por categoria/mês/ano, com filtros
+- **Investimentos** — CRUD das posições de investimento da household, com tipo (`fixed_income`, `stocks`, `funds`, `real_estate_funds`, `crypto`, `pension`, `other`), valor aplicado e valor atual
 - **Dashboard** — Resumo mensal com receitas, despesas, saldo, gasto por categoria (orçado vs. realizado) e comparação com o mês anterior. Para meses futuros, o resumo é uma projeção (`isProjection: true`) baseada nas recorrências
 - **Relatório Mensal por E-mail** — Todo dia 1º, cada membro de cada household recebe por e-mail o resumo financeiro do mês anterior
 - **Isolamento por Household** — Todas as consultas são escopadas ao `householdId` do usuário autenticado
@@ -271,6 +273,26 @@ Authorization: Bearer <CRON_SECRET>
   "month": 8,
   "year": 2026,
   "estimatedAmount": 800.00
+}
+```
+
+### Investimentos
+
+| Método | Rota                    | Descrição                          |
+|--------|-------------------------|------------------------------------|
+| GET    | `/api/investments`      | Lista os investimentos da household |
+| POST   | `/api/investments`      | Cadastra um investimento           |
+| PUT    | `/api/investments/:id`  | Atualiza um investimento           |
+| DELETE | `/api/investments/:id`  | Remove um investimento             |
+
+**Body (POST/PUT):**
+```json
+{
+  "name": "Tesouro Selic 2029",
+  "type": "fixed_income",
+  "institution": "XP",
+  "investedAmount": 10000.00,
+  "currentValue": 10850.40
 }
 ```
 
