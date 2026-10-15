@@ -21,11 +21,14 @@ import { StatementEntryRepository } from "../../domain/contracts/statement-entry
 import { HttpStatementEntryRepository } from "../repositories/statement-entry-repository/http-statement-entry-repository";
 import { InvestmentRepository } from "../../domain/contracts/investment-repository";
 import { HttpInvestmentRepository } from "../repositories/investment-repository/http-investment-repository";
+import { InterestRateService } from "../../domain/contracts/interest-rate-service";
+import { BcbInterestRateService } from "../services/interest-rate-service/bcb-interest-rate-service";
 import { MailService } from "../../domain/contracts/mail-service";
 import { NodemailerMailService } from "../services/mail-service/nodemailer-mail-service";
 
 Container.bind(AuthRepository).to(HttpAuthRepository);
 Container.bind(MailService).to(NodemailerMailService);
+Container.bind(InterestRateService).to(BcbInterestRateService);
 Container.bind(HouseholdRepository).to(HttpHouseholdRepository);
 Container.bind(CategoriesRepository).to(HttpCategoriesRepository);
 Container.bind(CardRepository).to(HttpCardRepository);

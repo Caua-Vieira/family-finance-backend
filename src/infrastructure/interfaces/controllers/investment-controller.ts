@@ -45,7 +45,12 @@ export class InvestmentController {
     }
 
     private parseBody(req: Request, householdId: string): InvestmentDTO {
-        const { name, type, institution, investedAmount, currentValue } = req.body;
+        const {
+            name, type, institution, investedAmount, currentValue,
+            referenceDate, indexer, rate, monthlyContribution, contributionDay,
+        } = req.body;
+
+        const isEmpty = (value: unknown) => value === undefined || value === null || value === "";
 
         return {
             householdId,
@@ -54,6 +59,12 @@ export class InvestmentController {
             institution: typeof institution === "string" && institution.trim() !== "" ? institution.trim() : null,
             investedAmount: Number(investedAmount),
             currentValue: Number(currentValue),
+            referenceDate:
+                typeof referenceDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(referenceDate) ? referenceDate : null,
+            indexer: isEmpty(indexer) ? null : indexer,
+            rate: isEmpty(rate) ? null : Number(rate),
+            monthlyContribution: isEmpty(monthlyContribution) ? 0 : Number(monthlyContribution),
+            contributionDay: isEmpty(contributionDay) ? null : Number(contributionDay),
         };
     }
 }

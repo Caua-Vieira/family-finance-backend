@@ -8,6 +8,7 @@ import {
     JoinColumn,
 } from "typeorm";
 import { Household } from "./household";
+import { InvestmentIndexer } from "../../domain/types/investment-dto";
 
 /**
  * Posição de investimento da família: quanto foi aplicado e quanto vale hoje.
@@ -38,8 +39,25 @@ export class Investment {
     @Column("decimal", { name: "invested_amount", precision: 14, scale: 2 })
     investedAmount!: number;
 
+    // Saldo em `referenceDate`. Com indexador/aportes, o valor de hoje é estimado
+    // a partir dele (ver investment-estimate.ts).
     @Column("decimal", { name: "current_value", precision: 14, scale: 2 })
     currentValue!: number;
+
+    @Column({ name: "reference_date", type: "date", nullable: true })
+    referenceDate!: string | null;
+
+    @Column({ type: "varchar", nullable: true })
+    indexer!: InvestmentIndexer | null;
+
+    @Column("decimal", { precision: 8, scale: 4, nullable: true })
+    rate!: number | null;
+
+    @Column("decimal", { name: "monthly_contribution", precision: 14, scale: 2, default: 0 })
+    monthlyContribution!: number;
+
+    @Column({ name: "contribution_day", type: "int", nullable: true })
+    contributionDay!: number | null;
 
     @CreateDateColumn({ name: "created_at" })
     createdAt!: Date;

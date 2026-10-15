@@ -288,13 +288,22 @@ Authorization: Bearer <CRON_SECRET>
 **Body (POST/PUT):**
 ```json
 {
-  "name": "Tesouro Selic 2029",
+  "name": "CDB Banco Inter",
   "type": "fixed_income",
-  "institution": "XP",
+  "institution": "Inter",
   "investedAmount": 10000.00,
-  "currentValue": 10850.40
+  "currentValue": 10850.40,
+  "referenceDate": "2026-10-14",
+  "indexer": "cdi",
+  "rate": 110,
+  "monthlyContribution": 500.00,
+  "contributionDay": 5
 }
 ```
+
+- `currentValue` é o saldo em `referenceDate`. Na listagem, cada item vem com `estimate` (valor e total aplicado estimados para hoje).
+- `indexer` (só para `fixed_income`): `cdi` (`rate` = % do CDI) ou `prefixed` (`rate` = % a.a.). O rendimento usa a taxa DI diária do Banco Central (série SGS 12), dia útil a dia útil, sem desconto de IR/IOF.
+- `monthlyContribution` + `contributionDay`: aporte somado todo mês a partir de `referenceDate` (e corrigido pelo indexador, quando houver).
 
 ### Usuários
 
