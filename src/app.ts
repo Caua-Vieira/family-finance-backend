@@ -13,6 +13,7 @@ import { householdRoutes } from "./infrastructure/interfaces/routes/household.ro
 import { recurringRoutes } from "./infrastructure/interfaces/routes/recurring.routes";
 import { statementEntriesRoutes } from "./infrastructure/interfaces/routes/statement-entries.routes";
 import { reportsRoutes } from "./infrastructure/interfaces/routes/reports.routes";
+import { investmentsRoutes } from "./infrastructure/interfaces/routes/investments.routes";
 import { errorHandler } from "./middleware/error-handler";
 
 const app = express();
@@ -36,6 +37,7 @@ apiRouter.use("/household", householdRoutes());
 apiRouter.use("/recurring", recurringRoutes());
 apiRouter.use("/statement-entries", statementEntriesRoutes());
 apiRouter.use("/reports", reportsRoutes());
+apiRouter.use("/investments", investmentsRoutes());
 
 app.use("/api", apiRouter);
 

@@ -59,3 +59,12 @@ export class InvalidRegisterException extends Error {
         Object.setPrototypeOf(this, InvalidRegisterException.prototype);
     }
 }
+
+export class InvalidInvestmentException extends Error {
+    public readonly name: string = 'Invalid Investment Error';
+
+    constructor(message: string) {
+        super(message);
+        Object.setPrototypeOf(this, InvalidInvestmentException.prototype);
+    }
+}
