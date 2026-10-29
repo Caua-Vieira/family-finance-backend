@@ -19,6 +19,14 @@ export class HttpAuthRepository implements AuthRepository {
         }
     }
 
+    async findByGoogleId(googleId: string): Promise<User | null> {
+        try {
+            return await this.database.getRepository(User).findOne({ where: { googleId } });
+        } catch {
+            throw new DatabaseException("Ocorreu um erro ao buscar informações");
+        }
+    }
+
     async findByValidPasswordResetToken(tokenHash: string): Promise<User | null> {
         try {
             return await this.database.getRepository(User).findOne({
@@ -52,7 +60,8 @@ export class HttpAuthRepository implements AuthRepository {
             const user = queryRunner.manager.create(User, {
                 name: data.name,
                 email: data.email,
-                passwordHash: data.password,
+                passwordHash: data.password ?? null,
+                googleId: data.googleId ?? null,
                 householdId: household.id,
             });
             await queryRunner.manager.save(user);
@@ -73,12 +82,21 @@ export class HttpAuthRepository implements AuthRepository {
             const user = repository.create({
                 name: data.name,
                 email: data.email,
-                passwordHash: data.password,
+                passwordHash: data.password ?? null,
+                googleId: data.googleId ?? null,
                 householdId,
             });
             return await repository.save(user);
         } catch {
             throw new DatabaseException("Ocorreu um erro ao criar o usuário");
+        }
+    }
+
+    async linkGoogleAccount(userId: string, googleId: string): Promise<void> {
+        try {
+            await this.database.getRepository(User).update(userId, { googleId });
+        } catch {
+            throw new DatabaseException("Ocorreu um erro ao vincular a conta Google");
         }
     }
 

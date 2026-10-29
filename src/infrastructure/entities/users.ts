@@ -20,8 +20,12 @@ export class User {
     @Column({ unique: true })
     email!: string;
 
-    @Column({ name: "password_hash" })
-    passwordHash!: string;
+    // Nulo em contas criadas pelo Google até o usuário definir uma senha
+    @Column({ name: "password_hash", type: "varchar", nullable: true })
+    passwordHash!: string | null;
+
+    @Column({ name: "google_id", type: "varchar", unique: true, nullable: true })
+    googleId!: string | null;
 
     @Column({ name: "password_reset_token_hash", type: "varchar", nullable: true, select: false })
     passwordResetTokenHash!: string | null;

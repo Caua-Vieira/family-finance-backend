@@ -69,6 +69,15 @@ export class InvalidInvestmentException extends Error {
     }
 }
 
+export class HouseholdRequiredException extends Error {
+    public readonly name: string = 'Household Required Error';
+
+    constructor(message: string) {
+        super(message);
+        Object.setPrototypeOf(this, HouseholdRequiredException.prototype);
+    }
+}
+
 export class InvalidTokenException extends Error {
     public readonly name: string = 'Invalid Token Error';
 

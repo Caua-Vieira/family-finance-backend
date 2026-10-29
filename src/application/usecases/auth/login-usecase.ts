@@ -16,6 +16,12 @@ export class LoginUseCase {
             throw new InvalidCredentialsException("Credenciais inválidas");
         }
 
+        if (!user.passwordHash) {
+            throw new InvalidCredentialsException(
+                "Esta conta foi criada com o Google. Entre com o Google ou defina uma senha em \"Esqueci minha senha\"."
+            );
+        }
+
         const isValid = await bcrypt.compare(password, user.passwordHash);
         if (!isValid) {
             throw new InvalidCredentialsException("Credenciais inválidas");

@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { MulterError } from "multer";
-import { DatabaseException,InvalidCategoryException, InvalidCredentialsException, InvalidFileException, InvalidInvestmentException, InvalidRegisterException, InvalidTokenException, NotFoundException, UserAlreadyExistsException } from "../domain/errors/errors";
+import { DatabaseException, HouseholdRequiredException, InvalidCategoryException, InvalidCredentialsException, InvalidFileException, InvalidInvestmentException, InvalidRegisterException, InvalidTokenException, NotFoundException, UserAlreadyExistsException } from "../domain/errors/errors";
 
 export function errorHandler(err: Error, req: Request, res: Response, next: NextFunction): void {
     if (err instanceof MulterError || err instanceof InvalidFileException) {
@@ -45,6 +45,12 @@ export function errorHandler(err: Error, req: Request, res: Response, next: Next
 
     if (err instanceof InvalidTokenException) {
         res.status(400).json({ error: err.message });
+        return;
+    }
+
+    // O frontend usa o code para pedir a família antes de concluir o cadastro pelo Google
+    if (err instanceof HouseholdRequiredException) {
+        res.status(422).json({ error: err.message, code: "HOUSEHOLD_REQUIRED" });
         return;
     }
 

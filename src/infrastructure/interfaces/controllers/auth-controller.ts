@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Inject, Singleton } from "typescript-ioc";
 import { LoginUseCase } from "../../../application/usecases/auth/login-usecase";
 import { RegisterUseCase } from "../../../application/usecases/auth/register-usecase";
+import { GoogleLoginUseCase } from "../../../application/usecases/auth/google-login-usecase";
 import { PasswordResetUseCase } from "../../../application/usecases/auth/password-reset-usecase";
 
 @Singleton
@@ -10,6 +11,7 @@ export class AuthController {
     constructor(
         @Inject private readonly loginUseCase: LoginUseCase,
         @Inject private readonly registerUseCase: RegisterUseCase,
+        @Inject private readonly googleLoginUseCase: GoogleLoginUseCase,
         @Inject private readonly passwordResetUseCase: PasswordResetUseCase,
     ) { }
 
@@ -27,6 +29,14 @@ export class AuthController {
         const token = await this.registerUseCase.execute({ name, email, password, householdName, inviteCode });
 
         res.status(201).json({ token });
+    }
+
+    async google(req: Request, res: Response) {
+        const { credential, householdName, inviteCode } = req.body;
+
+        const token = await this.googleLoginUseCase.execute({ credential, householdName, inviteCode });
+
+        res.json({ token });
     }
 
     async forgotPassword(req: Request, res: Response) {

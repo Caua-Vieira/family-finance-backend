@@ -21,15 +21,23 @@ export class RegisterUseCase {
             throw new UserAlreadyExistsException("E-mail já cadastrado");
         }
 
-        const passwordHash = await bcrypt.hash(input.password, 10);
-        const data: CreateUserDTO = { ...input, password: passwordHash };
+        if (!input.password) {
+            throw new InvalidRegisterException("Informe uma senha");
+        }
 
+        const passwordHash = await bcrypt.hash(input.password, 10);
+
+        return this.createAccount({ ...input, password: passwordHash });
+    }
+
+    // Também usado no cadastro pelo Google, onde não há senha. Espera a senha já em hash.
+    async createAccount(data: CreateUserDTO) {
         let user: User;
         let household: Household;
         let isHouseholdCreator: boolean;
 
-        if (input.inviteCode) {
-            const found = await this.authRepository.findHouseholdByInviteCode(input.inviteCode);
+        if (data.inviteCode) {
+            const found = await this.authRepository.findHouseholdByInviteCode(data.inviteCode);
             if (!found) {
                 throw new NotFoundException("Código de convite inválido");
             }
@@ -37,7 +45,7 @@ export class RegisterUseCase {
             household = found;
             isHouseholdCreator = false;
         } else {
-            if (!input.householdName) {
+            if (!data.householdName) {
                 throw new InvalidRegisterException("Informe o nome da família ou um código de convite");
             }
             const created = await this.authRepository.createUserWithHousehold(data);
