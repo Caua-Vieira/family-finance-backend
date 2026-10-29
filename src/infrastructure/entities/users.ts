@@ -23,6 +23,12 @@ export class User {
     @Column({ name: "password_hash" })
     passwordHash!: string;
 
+    @Column({ name: "password_reset_token_hash", type: "varchar", nullable: true, select: false })
+    passwordResetTokenHash!: string | null;
+
+    @Column({ name: "password_reset_expires_at", type: "timestamp", nullable: true, select: false })
+    passwordResetExpiresAt!: Date | null;
+
     @Column({ name: "household_id" })
     householdId!: string;
 

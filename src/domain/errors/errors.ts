@@ -68,3 +68,12 @@ export class InvalidInvestmentException extends Error {
         Object.setPrototypeOf(this, InvalidInvestmentException.prototype);
     }
 }
+
+export class InvalidTokenException extends Error {
+    public readonly name: string = 'Invalid Token Error';
+
+    constructor(message: string) {
+        super(message);
+        Object.setPrototypeOf(this, InvalidTokenException.prototype);
+    }
+}
