@@ -15,7 +15,15 @@ export interface MonthlySummaryEmailData {
     summary: DashboardSummaryDTO;
 }
 
+export interface PasswordResetEmailData {
+    to: string;
+    name: string;
+    resetUrl: string;
+    expiresInMinutes: number;
+}
+
 export abstract class MailService {
     abstract sendWelcomeEmail(data: WelcomeEmailData): Promise<void>;
     abstract sendMonthlySummaryEmail(data: MonthlySummaryEmailData): Promise<void>;
+    abstract sendPasswordResetEmail(data: PasswordResetEmailData): Promise<void>;
 }

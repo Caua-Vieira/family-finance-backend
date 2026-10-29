@@ -1,4 +1,5 @@
 import { Inject } from "typescript-ioc";
+import { MoreThan } from "typeorm";
 import { AuthRepository } from "../../../domain/contracts/auth-repository";
 import { DatabaseException } from "../../../domain/errors/errors";
 import { User } from "../../entities/users";
@@ -13,6 +14,16 @@ export class HttpAuthRepository implements AuthRepository {
     async findByEmail(email: string): Promise<User | null> {
         try {
             return await this.database.getRepository(User).findOne({ where: { email } });
+        } catch {
+            throw new DatabaseException("Ocorreu um erro ao buscar informações");
+        }
+    }
+
+    async findByValidPasswordResetToken(tokenHash: string): Promise<User | null> {
+        try {
+            return await this.database.getRepository(User).findOne({
+                where: { passwordResetTokenHash: tokenHash, passwordResetExpiresAt: MoreThan(new Date()) },
+            });
         } catch {
             throw new DatabaseException("Ocorreu um erro ao buscar informações");
         }
@@ -68,6 +79,30 @@ export class HttpAuthRepository implements AuthRepository {
             return await repository.save(user);
         } catch {
             throw new DatabaseException("Ocorreu um erro ao criar o usuário");
+        }
+    }
+
+    async savePasswordResetToken(userId: string, tokenHash: string, expiresAt: Date): Promise<void> {
+        try {
+            await this.database.getRepository(User).update(userId, {
+                passwordResetTokenHash: tokenHash,
+                passwordResetExpiresAt: expiresAt,
+            });
+        } catch {
+            throw new DatabaseException("Ocorreu um erro ao gerar a recuperação de senha");
+        }
+    }
+
+    async updatePassword(userId: string, passwordHash: string): Promise<void> {
+        try {
+            // Invalida o link de recuperação junto com a troca, para ele não ser reutilizado
+            await this.database.getRepository(User).update(userId, {
+                passwordHash,
+                passwordResetTokenHash: null,
+                passwordResetExpiresAt: null,
+            });
+        } catch {
+            throw new DatabaseException("Ocorreu um erro ao atualizar a senha");
         }
     }
 }
