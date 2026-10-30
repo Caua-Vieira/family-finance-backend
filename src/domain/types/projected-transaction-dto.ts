@@ -9,4 +9,7 @@ export interface ProjectedTransactionDTO {
     userId: string | null;
     recurringTransactionId: string;
     isProjected: true;
+    // Valor da regra; difere de `amount` quando o mês tem um valor previsto ajustado
+    ruleAmount: number;
+    amountAdjusted: boolean;
 }
