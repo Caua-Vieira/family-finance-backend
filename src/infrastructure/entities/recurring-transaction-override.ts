@@ -10,10 +10,6 @@ import {
 } from "typeorm";
 import { RecurringTransaction } from "./recurring-transactions";
 
-/**
- * Valor previsto de uma recorrência em um mês específico (ex.: conta de luz de
- * dezembro). Substitui o valor da regra só naquele mês, na projeção e na geração.
- */
 @Entity("recurring_transaction_overrides")
 @Unique("UQ_recurring_override_month", ["recurringTransactionId", "year", "month"])
 export class RecurringTransactionOverride {
