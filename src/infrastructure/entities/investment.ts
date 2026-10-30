@@ -39,8 +39,6 @@ export class Investment {
     @Column("decimal", { name: "invested_amount", precision: 14, scale: 2 })
     investedAmount!: number;
 
-    // Saldo em `referenceDate`. Com indexador/aportes, o valor de hoje é estimado
-    // a partir dele (ver investment-estimate.ts).
     @Column("decimal", { name: "current_value", precision: 14, scale: 2 })
     currentValue!: number;
 
