@@ -47,7 +47,6 @@ export function parseAmount(raw: unknown): number | null {
     } else if (lastComma !== -1) {
         cleaned = cleaned.replace(",", ".");
     } else if (/^-?\d{1,3}(\.\d{3})+$/.test(cleaned)) {
-        // "1.234" sem vírgula é milhar no padrão brasileiro
         cleaned = cleaned.replace(/\./g, "");
     }
 
