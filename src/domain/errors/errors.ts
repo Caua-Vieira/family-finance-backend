@@ -68,3 +68,12 @@ export class InvalidInvestmentException extends Error {
         Object.setPrototypeOf(this, InvalidInvestmentException.prototype);
     }
 }
+
+export class InvalidRecurringTransactionException extends Error {
+    public readonly name: string = 'Invalid Recurring Transaction Error';
+
+    constructor(message: string) {
+        super(message);
+        Object.setPrototypeOf(this, InvalidRecurringTransactionException.prototype);
+    }
+}

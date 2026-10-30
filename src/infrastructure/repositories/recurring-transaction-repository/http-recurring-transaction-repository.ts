@@ -1,7 +1,9 @@
 import { Inject } from "typescript-ioc";
+import { In } from "typeorm";
 import { RecurringTransactionRepository } from "../../../domain/contracts/recurring-transaction-repository";
 import { DatabaseException, NotFoundException } from "../../../domain/errors/errors";
 import { RecurringTransaction } from "../../entities/recurring-transactions";
+import { RecurringTransactionOverride } from "../../entities/recurring-transaction-override";
 import { Database } from "../../database/database";
 import { RecurringTransactionDTO } from "../../../domain/types/recurring-transaction-dto";
 
@@ -93,7 +95,42 @@ export class HttpRecurringTransactionRepository implements RecurringTransactionR
         }
     }
 
-    private async findByIdOrFail(id: string, householdId: string): Promise<RecurringTransaction> {
+    async findOverridesForMonth(ruleIds: string[], month: number, year: number): Promise<RecurringTransactionOverride[]> {
+        if (ruleIds.length === 0) return [];
+
+        try {
+            return await this.database.getRepository(RecurringTransactionOverride).find({
+                where: { recurringTransactionId: In(ruleIds), month, year },
+            });
+        } catch {
+            throw new DatabaseException("Ocorreu um erro ao buscar os valores previstos das recorrências");
+        }
+    }
+
+    async saveOverride(ruleId: string, month: number, year: number, amount: number): Promise<void> {
+        try {
+            await this.database.getRepository(RecurringTransactionOverride).upsert(
+                { recurringTransactionId: ruleId, month, year, amount },
+                ["recurringTransactionId", "year", "month"]
+            );
+        } catch {
+            throw new DatabaseException("Ocorreu um erro ao salvar o valor previsto");
+        }
+    }
+
+    async deleteOverride(ruleId: string, month: number, year: number): Promise<void> {
+        try {
+            await this.database.getRepository(RecurringTransactionOverride).delete({
+                recurringTransactionId: ruleId,
+                month,
+                year,
+            });
+        } catch {
+            throw new DatabaseException("Ocorreu um erro ao remover o valor previsto");
+        }
+    }
+
+    async findByIdOrFail(id: string, householdId: string): Promise<RecurringTransaction> {
         let rule;
         try {
             rule = await this.database.getRepository(RecurringTransaction).findOne({ where: { id, householdId } });

@@ -5,6 +5,8 @@ import { RecurringTransactionDTO } from "../../domain/types/recurring-transactio
 import { TransactionDTO } from "../../domain/types/transaction-dto";
 import { ProjectedTransactionDTO } from "../../domain/types/projected-transaction-dto";
 import { RecurringTransaction } from "../../infrastructure/entities/recurring-transactions";
+import { InvalidRecurringTransactionException } from "../../domain/errors/errors";
+import { isFutureMonth } from "./utils/month-period";
 
 function pad(value: number): string {
     return String(value).padStart(2, "0");
@@ -76,12 +78,17 @@ export class RecurringTransactionUseCase {
             await this.transactionRepository.findGeneratedRecurringIds(periodStart, periodEnd)
         );
 
-        return eligible
-            .filter((rule) => !alreadyGenerated.has(rule.id))
-            .map((rule) => ({
+        const pending = eligible.filter((rule) => !alreadyGenerated.has(rule.id));
+        const overrides = await this.findOverrideAmounts(pending, month, year);
+
+        return pending.map((rule) => {
+            const ruleAmount = Number(rule.amount);
+            const override = overrides.get(rule.id);
+
+            return {
                 id: null,
                 type: rule.type,
-                amount: Number(rule.amount),
+                amount: override ?? ruleAmount,
                 description: rule.description,
                 date: isoDate(year, month, Math.min(rule.dayOfMonth, daysInMonth)),
                 categoryId: rule.categoryId,
@@ -89,7 +96,62 @@ export class RecurringTransactionUseCase {
                 userId: rule.userId,
                 recurringTransactionId: rule.id,
                 isProjected: true as const,
-            }));
+                ruleAmount,
+                amountAdjusted: override !== undefined,
+            };
+        });
+    }
+
+    /**
+     * Define o valor previsto de uma recorrência em um mês futuro, sem mudar a
+     * regra (ex.: conta de luz que varia). Informar o mesmo valor da regra remove o ajuste.
+     */
+    async setForecastAmount(id: string, householdId: string, month: number, year: number, amount: number): Promise<void> {
+        this.assertFutureMonth(month, year);
+
+        if (!Number.isFinite(amount) || amount <= 0) {
+            throw new InvalidRecurringTransactionException("Informe um valor maior que zero");
+        }
+
+        const rule = await this.recurringTransactionRepository.findByIdOrFail(id, householdId);
+
+        if (Math.round(amount * 100) === Math.round(Number(rule.amount) * 100)) {
+            await this.recurringTransactionRepository.deleteOverride(rule.id, month, year);
+            return;
+        }
+
+        await this.recurringTransactionRepository.saveOverride(rule.id, month, year, amount);
+    }
+
+    async resetForecastAmount(id: string, householdId: string, month: number, year: number): Promise<void> {
+        this.assertFutureMonth(month, year);
+
+        const rule = await this.recurringTransactionRepository.findByIdOrFail(id, householdId);
+
+        await this.recurringTransactionRepository.deleteOverride(rule.id, month, year);
+    }
+
+    // Só meses futuros: o mês atual já tem o lançamento gerado, que é editado normalmente.
+    private assertFutureMonth(month: number, year: number) {
+        if (!Number.isInteger(month) || month < 1 || month > 12 || !Number.isInteger(year)) {
+            throw new InvalidRecurringTransactionException("Mês ou ano inválido");
+        }
+
+        if (!isFutureMonth({ month, year })) {
+            throw new InvalidRecurringTransactionException(
+                "Só é possível ajustar o valor previsto de meses futuros. No mês atual, edite o lançamento gerado."
+            );
+        }
+    }
+
+    private async findOverrideAmounts(rules: RecurringTransaction[], month: number, year: number): Promise<Map<string, number>> {
+        const overrides = await this.recurringTransactionRepository.findOverridesForMonth(
+            rules.map((rule) => rule.id),
+            month,
+            year
+        );
+
+        return new Map(overrides.map((override) => [override.recurringTransactionId, Number(override.amount)]));
     }
 
     async generateForMonth(month?: number, year?: number): Promise<number> {
@@ -111,9 +173,11 @@ export class RecurringTransactionUseCase {
         const pending = rules.filter((rule) => !alreadyGenerated.has(rule.id));
         if (pending.length === 0) return 0;
 
+        const overrides = await this.findOverrideAmounts(pending, targetMonth, targetYear);
+
         const transactions: TransactionDTO[] = pending.map((rule) => ({
             type: rule.type,
-            amount: rule.amount,
+            amount: overrides.get(rule.id) ?? rule.amount,
             description: rule.description,
             date: new Date(Date.UTC(targetYear, targetMonth - 1, Math.min(rule.dayOfMonth, daysInMonth))),
             categoryId: rule.categoryId,
