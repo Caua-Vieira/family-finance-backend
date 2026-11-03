@@ -1,6 +1,7 @@
 export interface MonthlyTotalsRow {
     income: string;
     expenses: string;
+    investments: string;
 }
 
 export interface CategorySpendingRow {
@@ -13,6 +14,7 @@ export interface CategorySpendingRow {
 export interface MonthlyTotalsDTO {
     income: number;
     expenses: number;
+    investments: number;
 }
 
 export interface CategorySpendingDTO {
@@ -30,7 +32,10 @@ export interface DashboardSummaryDTO {
     month: number;
     year: number;
     income: number;
+    // Despesas totais: despesas + investimentos (o saldo é receitas - expenses)
     expenses: number;
+    // Parte das despesas totais que foi investida
+    investments: number;
     balance: number;
     isProjection?: boolean;
     categories: DashboardCategorySummaryDTO[];

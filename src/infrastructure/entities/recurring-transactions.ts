@@ -24,8 +24,8 @@ export class RecurringTransaction {
     @JoinColumn({ name: "household_id" })
     household!: Household;
 
-    @Column({ type: "enum", enum: ["income", "expense"] })
-    type!: "income" | "expense";
+    @Column({ type: "enum", enum: ["income", "expense", "investment"] })
+    type!: "income" | "expense" | "investment";
 
     @Column("decimal", { precision: 10, scale: 2 })
     amount!: number;

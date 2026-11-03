@@ -18,8 +18,8 @@ export class Transaction {
     @PrimaryGeneratedColumn("uuid")
     id!: string;
 
-    @Column({ type: "enum", enum: ["income", "expense"] })
-    type!: "income" | "expense";
+    @Column({ type: "enum", enum: ["income", "expense", "investment"] })
+    type!: "income" | "expense" | "investment";
 
     @Column("decimal", { precision: 10, scale: 2 })
     amount!: number;

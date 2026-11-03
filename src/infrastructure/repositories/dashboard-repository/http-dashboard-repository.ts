@@ -14,7 +14,8 @@ export class HttpDashboardRepository implements DashboardRepository {
             const rows = await this.database.query<MonthlyTotalsRow[]>(
                 `SELECT
                     COALESCE(SUM(amount) FILTER (WHERE type = 'income'), 0) AS income,
-                    COALESCE(SUM(amount) FILTER (WHERE type = 'expense'), 0) AS expenses
+                    COALESCE(SUM(amount) FILTER (WHERE type = 'expense'), 0) AS expenses,
+                    COALESCE(SUM(amount) FILTER (WHERE type = 'investment'), 0) AS investments
                  FROM transactions
                  WHERE household_id = $1
                    AND EXTRACT(MONTH FROM date) = $2
@@ -25,6 +26,7 @@ export class HttpDashboardRepository implements DashboardRepository {
             return {
                 income: Number(rows[0]?.income ?? 0),
                 expenses: Number(rows[0]?.expenses ?? 0),
+                investments: Number(rows[0]?.investments ?? 0),
             };
         } catch {
             throw new DatabaseException("Ocorreu um erro ao buscar os totais do mês");

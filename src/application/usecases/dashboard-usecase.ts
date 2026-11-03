@@ -24,16 +24,20 @@ export class DashboardUseCase {
         ]);
 
         const isProjection = isFutureMonth({ month, year });
+        const previousExpenses = previous.expenses + previous.investments;
 
         let income = current.income;
-        let expenses = current.expenses;
+        let investments = current.investments;
+        // Despesas totais = despesas + investimentos: o aporte sai do caixa do mês
+        let expenses = current.expenses + current.investments;
         let categories = categorySpending;
 
         if (isProjection) {
             const projected = await this.recurringTransactionUseCase.getProjectedForMonth(householdId, month, year);
             const totals = await this.applyProjection(householdId, categorySpending, projected);
             income += totals.projectedIncome;
-            expenses += totals.projectedExpenses;
+            investments += totals.projectedInvestments;
+            expenses += totals.projectedExpenses + totals.projectedInvestments;
             categories = totals.categories;
         }
 
@@ -42,6 +46,7 @@ export class DashboardUseCase {
             year,
             income,
             expenses,
+            investments,
             balance: income - expenses,
             categories: categories.map((category) => ({
                 ...category,
@@ -51,8 +56,8 @@ export class DashboardUseCase {
                 month: previousMonth,
                 year: previousYear,
                 income: previous.income,
-                expenses: previous.expenses,
-                expensesVariationPercentage: this.calculatePercentageVariation(expenses, previous.expenses),
+                expenses: previousExpenses,
+                expensesVariationPercentage: this.calculatePercentageVariation(expenses, previousExpenses),
             },
             ...(isProjection ? { isProjection: true } : {}),
         };
@@ -62,9 +67,9 @@ export class DashboardUseCase {
         householdId: string,
         categorySpending: CategorySpendingDTO[],
         projected: ProjectedTransactionDTO[]
-    ): Promise<{ projectedIncome: number; projectedExpenses: number; categories: CategorySpendingDTO[] }> {
+    ): Promise<{ projectedIncome: number; projectedExpenses: number; projectedInvestments: number; categories: CategorySpendingDTO[] }> {
         if (projected.length === 0) {
-            return { projectedIncome: 0, projectedExpenses: 0, categories: categorySpending };
+            return { projectedIncome: 0, projectedExpenses: 0, projectedInvestments: 0, categories: categorySpending };
         }
 
         const allCategories = await this.categoriesRepository.findByHouseholdId(householdId);
@@ -75,11 +80,18 @@ export class DashboardUseCase {
 
         let projectedIncome = 0;
         let projectedExpenses = 0;
+        let projectedInvestments = 0;
         const extraByMainCategory = new Map<number, number>();
 
         for (const item of projected) {
             if (item.type === "income") {
                 projectedIncome += item.amount;
+                continue;
+            }
+
+            // Investimento não entra nas categorias nem no orçamento
+            if (item.type === "investment") {
+                projectedInvestments += item.amount;
                 continue;
             }
 
@@ -97,7 +109,7 @@ export class DashboardUseCase {
             return extra > 0 ? { ...category, spent: category.spent + extra } : category;
         });
 
-        return { projectedIncome, projectedExpenses, categories };
+        return { projectedIncome, projectedExpenses, projectedInvestments, categories };
     }
 
     private getPreviousPeriod(month: number, year: number): { previousMonth: number; previousYear: number } {

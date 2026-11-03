@@ -1,7 +1,7 @@
 export interface RecurringTransactionDTO {
     id?: string;
     householdId: string;
-    type?: "income" | "expense";
+    type?: "income" | "expense" | "investment";
     amount?: number;
     description?: string;
     categoryId?: string | null;
