@@ -10,6 +10,6 @@ export function parseNumber(value: unknown): number | undefined {
     return isNaN(number) ? undefined : number;
 }
 
-export function parseTransactionType(value: unknown): "income" | "expense" | undefined {
-    return value === "income" || value === "expense" ? value : undefined;
+export function parseTransactionType(value: unknown): "income" | "expense" | "investment" | undefined {
+    return value === "income" || value === "expense" || value === "investment" ? value : undefined;
 }

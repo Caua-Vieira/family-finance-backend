@@ -1,6 +1,6 @@
 export interface ProjectedTransactionDTO {
     id: null;
-    type: "income" | "expense";
+    type: "income" | "expense" | "investment";
     amount: number;
     description: string;
     date: string;

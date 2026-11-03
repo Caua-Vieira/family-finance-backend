@@ -1,6 +1,6 @@
 export interface TransactionDTO {
     id?: string;
-    type: "income" | "expense";
+    type: "income" | "expense" | "investment";
     amount: number;
     description: string;
     date: Date;

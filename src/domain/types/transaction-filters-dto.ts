@@ -3,7 +3,7 @@ export interface TransactionFiltersDTO {
     endDate?: Date;
     minAmount?: number;
     maxAmount?: number;
-    type?: "income" | "expense";
+    type?: "income" | "expense" | "investment";
     categoryId?: string;
     cardId?: string;
 }
