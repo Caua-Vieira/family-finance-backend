@@ -15,7 +15,7 @@ export class HttpDashboardRepository implements DashboardRepository {
                 `SELECT
                     COALESCE(SUM(amount) FILTER (WHERE type = 'income'), 0) AS income,
                     COALESCE(SUM(amount) FILTER (WHERE type = 'expense'), 0) AS expenses,
-                    COALESCE(SUM(amount) FILTER (WHERE type = 'investment'), 0) AS investments
+                    COALESCE(SUM(amount) FILTER (WHERE type::text = 'investment'), 0) AS investments
                  FROM transactions
                  WHERE household_id = $1
                    AND EXTRACT(MONTH FROM date) = $2
