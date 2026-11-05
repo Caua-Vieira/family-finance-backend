@@ -1,8 +1,9 @@
 import nodemailer, { Transporter } from "nodemailer";
 import { Singleton } from "typescript-ioc";
-import { MailService, MonthlySummaryEmailData, WelcomeEmailData } from "../../../domain/contracts/mail-service";
+import { MailService, MonthlySummaryEmailData, PasswordResetEmailData, WelcomeEmailData } from "../../../domain/contracts/mail-service";
 import { buildWelcomeEmailHtml } from "./templates/welcome-email";
 import { buildMonthlySummaryEmailHtml } from "./templates/monthly-summary-email";
+import { buildPasswordResetEmailHtml } from "./templates/password-reset-email";
 
 const MONTH_NAMES = [
     "janeiro", "fevereiro", "março", "abril", "maio", "junho",
@@ -56,6 +57,19 @@ export class NodemailerMailService implements MailService {
             });
         } catch (err) {
             console.error("Erro ao enviar e-mail de resumo mensal:", err);
+        }
+    }
+
+    async sendPasswordResetEmail(data: PasswordResetEmailData): Promise<void> {
+        try {
+            await this.transporter.sendMail({
+                from: this.from,
+                to: data.to,
+                subject: "Redefinição de senha — Family Finance",
+                html: buildPasswordResetEmailHtml(data),
+            });
+        } catch (err) {
+            console.error("Erro ao enviar e-mail de redefinição de senha:", err);
         }
     }
 }

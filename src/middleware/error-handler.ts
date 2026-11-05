@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { MulterError } from "multer";
-import { DatabaseException, InvalidCategoryException, InvalidCredentialsException, InvalidFileException, InvalidInvestmentException, InvalidRecurringTransactionException, InvalidRegisterException, NotFoundException, UserAlreadyExistsException } from "../domain/errors/errors";
+import { DatabaseException, InvalidCategoryException, InvalidCredentialsException, InvalidFileException, InvalidInvestmentException, InvalidRecurringTransactionException, InvalidRegisterException, InvalidTokenException, NotFoundException, UserAlreadyExistsException } from "../domain/errors/errors";
 
 export function errorHandler(err: Error, req: Request, res: Response, next: NextFunction): void {
     if (err instanceof MulterError || err instanceof InvalidFileException) {
@@ -44,6 +44,11 @@ export function errorHandler(err: Error, req: Request, res: Response, next: Next
     }
 
     if (err instanceof InvalidRecurringTransactionException) {
+        res.status(400).json({ error: err.message });
+        return;
+    }
+
+    if (err instanceof InvalidTokenException) {
         res.status(400).json({ error: err.message });
         return;
     }
