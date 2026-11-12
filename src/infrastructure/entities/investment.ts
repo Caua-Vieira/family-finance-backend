@@ -10,11 +10,6 @@ import {
 import { Household } from "./household";
 import { InvestmentIndexer } from "../../domain/types/investment-dto";
 
-/**
- * Posição de investimento da família: quanto foi aplicado e quanto vale hoje.
- * É um controle patrimonial à parte — NÃO entra nos cálculos de dashboard nem
- * de orçamento.
- */
 @Entity("investments")
 export class Investment {
     @PrimaryGeneratedColumn("uuid")
