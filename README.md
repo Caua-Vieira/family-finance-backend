@@ -117,6 +117,8 @@ Todo o acesso a dados é escopado por `householdId`, extraído do token JWT — 
 |--------|-----------------|-----------------------------------------------------|------|
 | POST   | `/api/auth/register` | Cria o usuário (em uma nova household ou via código de convite) — retorna token JWT | Não  |
 | POST   | `/api/auth/login`    | Login — retorna token JWT                          | Não  |
+| POST   | `/api/auth/forgot-password` | Envia por e-mail um link para redefinir a senha (responde `204`, exista ou não o e-mail) | Não  |
+| POST   | `/api/auth/reset-password`  | Define uma nova senha a partir do token recebido por e-mail — retorna token JWT | Não  |
 
 **Body — Registro:**
 ```json
@@ -154,6 +156,10 @@ Para entrar em uma household existente, troque `householdName` por `inviteCode`:
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
 ```
+
+**Body — Esqueci a senha:** `{ "email": "usuario@email.com" }`
+
+**Body — Redefinir senha:** `{ "token": "<token do link do e-mail>", "password": "novasenha" }`
 
 ---
 
@@ -206,6 +212,8 @@ Authorization: Bearer <CRON_SECRET>
   "cardId": "2"
 }
 ```
+
+`type` aceita `income` (receita), `expense` (despesa) e `investment` (aporte em investimento). Investimentos contam nas despesas totais do mês, mas ficam fora do gasto por categoria e do orçamento.
 
 **Filtros disponíveis (GET, via query string):** `startDate`, `endDate`, `minAmount`, `maxAmount`, `type`, `categoryId`, `cardId`, `month`, `year`
 
@@ -330,6 +338,7 @@ Authorization: Bearer <CRON_SECRET>
   "year": 2026,
   "income": 5000.00,
   "expenses": 3200.50,
+  "investments": 500.00,
   "balance": 1799.50,
   "categories": [
     {
@@ -349,6 +358,8 @@ Authorization: Bearer <CRON_SECRET>
   }
 }
 ```
+
+> `expenses` são as despesas totais (despesas + investimentos) e `investments` é a parte investida; o saldo é `income - expenses`.
 
 > Para meses futuros, a resposta inclui `"isProjection": true` e os totais consideram as recorrências ativas.
 
@@ -402,6 +413,9 @@ SMTP_SECURE=false
 SMTP_USER=resend
 SMTP_PASS=sua_api_key
 MAIL_FROM="Family Finance <onboarding@resend.dev>"
+
+# URL do frontend, usada no link do e-mail de recuperação de senha
+FRONTEND_URL=http://localhost:5173
 ```
 
 > O `.env.example` na raiz traz todas essas variáveis. Sem domínio próprio verificado no Resend, o remetente de teste `onboarding@resend.dev` só entrega para o e-mail dono da conta Resend.
