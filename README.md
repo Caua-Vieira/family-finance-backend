@@ -207,6 +207,8 @@ Authorization: Bearer <CRON_SECRET>
 }
 ```
 
+`type` aceita `income` (receita), `expense` (despesa) e `investment` (aporte em investimento). Investimentos contam nas despesas totais do mês, mas ficam fora do gasto por categoria e do orçamento.
+
 **Filtros disponíveis (GET, via query string):** `startDate`, `endDate`, `minAmount`, `maxAmount`, `type`, `categoryId`, `cardId`, `month`, `year`
 
 > Quando `month` e `year` são informados e apontam para um mês futuro, a resposta inclui os lançamentos projetados das recorrências ativas, marcados com `isProjected: true`.
@@ -330,6 +332,7 @@ Authorization: Bearer <CRON_SECRET>
   "year": 2026,
   "income": 5000.00,
   "expenses": 3200.50,
+  "investments": 500.00,
   "balance": 1799.50,
   "categories": [
     {
@@ -349,6 +352,8 @@ Authorization: Bearer <CRON_SECRET>
   }
 }
 ```
+
+> `expenses` são as despesas totais (despesas + investimentos) e `investments` é a parte investida; o saldo é `income - expenses`.
 
 > Para meses futuros, a resposta inclui `"isProjection": true` e os totais consideram as recorrências ativas.
 
