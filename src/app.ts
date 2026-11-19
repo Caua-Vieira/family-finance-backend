@@ -14,6 +14,7 @@ import { recurringRoutes } from "./infrastructure/interfaces/routes/recurring.ro
 import { statementEntriesRoutes } from "./infrastructure/interfaces/routes/statement-entries.routes";
 import { reportsRoutes } from "./infrastructure/interfaces/routes/reports.routes";
 import { investmentsRoutes } from "./infrastructure/interfaces/routes/investments.routes";
+import { advisorRoutes } from "./infrastructure/interfaces/routes/advisor.routes";
 import { errorHandler } from "./middleware/error-handler";
 
 const app = express();
@@ -38,6 +39,7 @@ apiRouter.use("/recurring", recurringRoutes());
 apiRouter.use("/statement-entries", statementEntriesRoutes());
 apiRouter.use("/reports", reportsRoutes());
 apiRouter.use("/investments", investmentsRoutes());
+apiRouter.use("/advisor", advisorRoutes());
 
 app.use("/api", apiRouter);
 

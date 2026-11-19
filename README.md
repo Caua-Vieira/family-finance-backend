@@ -357,6 +357,17 @@ Authorization: Bearer <CRON_SECRET>
 
 > Para meses futuros, a resposta inclui `"isProjection": true` e os totais consideram as recorrências ativas.
 
+### Assistente (quanto posso gastar + chat com IA)
+
+| Método | Rota                              | Descrição                                              |
+|--------|-----------------------------------|----------------------------------------------------------|
+| GET    | `/api/advisor/spending-capacity`  | Saldo restante do mês, dias que faltam, limite por dia/fim de semana e, com `?amount=300`, se esse valor cabe (`ok`, `tight` ou `no`) |
+| POST   | `/api/advisor/chat`               | Pergunta em linguagem natural sobre o orçamento (`{ "messages": [{ "role": "user", "content": "..." }] }`) — retorna `{ "reply": "..." }` |
+
+O cálculo é determinístico e feito no backend: saldo = receitas − despesas totais do mês (já com investimentos), dividido pelos dias que faltam. A folga de segurança é 10% da renda do mês; abaixo disso o veredito é `tight`.
+
+No chat, a IA **não faz contas**: ela chama ferramentas (`get_spending_capacity`, `get_month_summary`, `list_transactions`) que leem apenas os dados da household do token JWT e responde com os números devolvidos. Limite de 20 perguntas por hora por household. Exige `ANTHROPIC_API_KEY`; sem ela o chat responde `503` e `chatEnabled` vem `false` no `spending-capacity`.
+
 ### Relatórios
 
 | Método | Rota                           | Descrição                                                | Auth |
@@ -407,6 +418,10 @@ SMTP_SECURE=false
 SMTP_USER=resend
 SMTP_PASS=sua_api_key
 MAIL_FROM="Family Finance <onboarding@resend.dev>"
+
+# Assistente de IA (opcional) — sem a chave, só o chat fica desligado
+ANTHROPIC_API_KEY=sua_chave_anthropic
+ANTHROPIC_MODEL=claude-haiku-5-5
 ```
 
 > O `.env.example` na raiz traz todas essas variáveis. Sem domínio próprio verificado no Resend, o remetente de teste `onboarding@resend.dev` só entrega para o e-mail dono da conta Resend.
