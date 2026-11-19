@@ -1,10 +1,25 @@
 import { NextFunction, Request, Response } from "express";
 import { MulterError } from "multer";
-import { DatabaseException, InvalidCategoryException, InvalidCredentialsException, InvalidFileException, InvalidInvestmentException, InvalidRecurringTransactionException, InvalidRegisterException, InvalidTokenException, NotFoundException, UserAlreadyExistsException } from "../domain/errors/errors";
+import { AdvisorRateLimitException, AdvisorUnavailableException, DatabaseException, InvalidCategoryException, InvalidCredentialsException, InvalidAdvisorRequestException, InvalidFileException, InvalidInvestmentException, InvalidRecurringTransactionException, InvalidRegisterException, InvalidTokenException, NotFoundException, UserAlreadyExistsException } from "../domain/errors/errors";
 
 export function errorHandler(err: Error, req: Request, res: Response, next: NextFunction): void {
     if (err instanceof MulterError || err instanceof InvalidFileException) {
         res.status(400).json({ error: err.message });
+        return;
+    }
+
+    if (err instanceof InvalidAdvisorRequestException) {
+        res.status(400).json({ error: err.message });
+        return;
+    }
+
+    if (err instanceof AdvisorRateLimitException) {
+        res.status(429).json({ error: err.message });
+        return;
+    }
+
+    if (err instanceof AdvisorUnavailableException) {
+        res.status(503).json({ error: err.message });
         return;
     }
 

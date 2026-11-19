@@ -86,3 +86,30 @@ export class InvalidTokenException extends Error {
         Object.setPrototypeOf(this, InvalidTokenException.prototype);
     }
 }
+
+export class AdvisorUnavailableException extends Error {
+    public readonly name: string = 'Advisor Unavailable Error';
+
+    constructor(message: string) {
+        super(message);
+        Object.setPrototypeOf(this, AdvisorUnavailableException.prototype);
+    }
+}
+
+export class AdvisorRateLimitException extends Error {
+    public readonly name: string = 'Advisor Rate Limit Error';
+
+    constructor(message: string) {
+        super(message);
+        Object.setPrototypeOf(this, AdvisorRateLimitException.prototype);
+    }
+}
+
+export class InvalidAdvisorRequestException extends Error {
+    public readonly name: string = 'Invalid Advisor Request Error';
+
+    constructor(message: string) {
+        super(message);
+        Object.setPrototypeOf(this, InvalidAdvisorRequestException.prototype);
+    }
+}
